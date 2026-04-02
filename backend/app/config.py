@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     # Legacy OpenAI key (deprecated, kept for backwards compatibility)
     openai_api_key: str = ""
     
+    # Virlo API settings (for viral content optimization)
+    virlo_api_key: str = ""
+    virlo_enabled: bool = True
+    
     # Supabase settings
     supabase_url: str = ""
     supabase_key: str = ""

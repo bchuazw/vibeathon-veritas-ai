@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
+import { Zap } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Article } from "@/types/article";
@@ -30,6 +31,14 @@ export function ArticleCard({ article }: ArticleCardProps) {
               <div className="absolute left-4 top-4">
                 <Badge className="bg-red-600 text-white hover:bg-red-700">
                   Breaking
+                </Badge>
+              </div>
+            )}
+            {article.virlo_optimized && (
+              <div className="absolute right-4 top-4">
+                <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700">
+                  <Zap className="mr-1 h-3 w-3" />
+                  Virlo
                 </Badge>
               </div>
             )}

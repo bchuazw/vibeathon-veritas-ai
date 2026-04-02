@@ -13,7 +13,7 @@
 
 ## 🏗️ Architecture
 
-Veritas AI uses a **3-agent pipeline architecture** that mimics a real newsroom:
+Veritas AI uses a **3-agent pipeline architecture** that mimics a real newsroom, now with **Virlo viral content optimization**:
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -27,7 +27,19 @@ Veritas AI uses a **3-agent pipeline architecture** that mimics a real newsroom:
 • Score relevance │     • Write draft   │     • Add metadata  │
 • Enrich sources  │     • Fact-check    │     • Format output │
 └─────────────────┘     • AP Style edit   │     └─────────────────┘
+                        • Virlo optimize  │
                         └─────────────────┘
+```
+
+### ✨ Virlo Integration
+
+Veritas AI now includes **Virlo viral content optimization** for maximum engagement:
+
+- **Trending Topics**: Fetches real-time trending topics from social platforms
+- **Headline Optimization**: AI-powered headline suggestions optimized for viral potential
+- **Viral Score**: Each article gets a viral potential score (0-100)
+- **Hashtag Suggestions**: Relevant trending hashtags added to articles
+- **"Optimized with Virlo" Badge**: Visual indicator of viral optimization
 ```
 
 ### Agent Responsibilities

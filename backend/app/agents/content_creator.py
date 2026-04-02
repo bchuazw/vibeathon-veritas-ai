@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 from app.config import get_settings
 from app.integrations.openai_client import OpenAIClient
+from app.integrations.virlo_client import VirloClient
 from app.models.article import Article, NewsTopic, Source
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ class ContentCreatorAgent:
     def __init__(self):
         self.settings = get_settings()
         self.openai = OpenAIClient()
+        self.virlo = VirloClient()
         self.max_retries = self.settings.max_retries
     
     async def create(
@@ -68,14 +70,46 @@ class ContentCreatorAgent:
             fact_check=fact_check_result,
         )
         
-        # Create Article model
+        # Step 5: Virlo headline optimization
+        original_headline = final_article.get("headline", topic.title)
+        virlo_optimized_headline = original_headline
+        virlo_score = None
+        virlo_hashtags = []
+        
+        if self.settings.virlo_enabled:
+            logger.info("Step 5: Optimizing headline with Virlo...")
+            try:
+                virlo_result = await self.virlo.optimize_headline(
+                    headline=original_headline,
+                    topic=topic.title
+                )
+                
+                # Use the first optimized headline if available
+                optimized_variants = virlo_result.get("optimized_headlines", [])
+                if optimized_variants:
+                    virlo_optimized_headline = optimized_variants[0].get("headline", original_headline)
+                    logger.info(f"Virlo optimized headline: {virlo_optimized_headline}")
+                
+                virlo_score = virlo_result.get("viral_score", 50)
+                virlo_hashtags = virlo_result.get("suggested_hashtags", [])
+                
+                logger.info(f"Virlo viral score: {virlo_score}/100")
+            except Exception as e:
+                logger.warning(f"Virlo optimization failed, using original headline: {e}")
+                virlo_optimized_headline = original_headline
+        
+        # Create Article model with Virlo optimization data
         article = Article(
-            headline=final_article.get("headline", topic.title),
+            headline=virlo_optimized_headline,
             body=final_article.get("body", ""),
             summary=final_article.get("summary", ""),
             sources=topic.sources,
-            keywords=topic.keywords,
+            keywords=topic.keywords + virlo_hashtags[:3],  # Add Virlo hashtags to keywords
             topic_id=topic.id,
+            virlo_optimized=self.settings.virlo_enabled,
+            virlo_score=virlo_score,
+            virlo_original_headline=original_headline if virlo_optimized_headline != original_headline else None,
+            virlo_suggested_hashtags=virlo_hashtags[:5],
         )
         
         logger.info(f"Article created: {article.headline}")

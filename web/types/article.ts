@@ -13,6 +13,11 @@ export interface Article {
   author?: string;
   created_at: string;
   updated_at: string;
+  // Virlo optimization fields
+  virlo_optimized?: boolean;
+  virlo_score?: number;
+  virlo_original_headline?: string;
+  virlo_suggested_hashtags?: string[];
 }
 
 export interface GenerateArticleRequest {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
-import { ArrowLeft, Share2, Twitter, Linkedin, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Share2, Twitter, Linkedin, Link as LinkIcon, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -67,6 +67,12 @@ export function ArticleReader({ article }: ArticleReaderProps) {
           {article.is_breaking && (
             <Badge className="bg-red-600 text-white hover:bg-red-700">
               Breaking News
+            </Badge>
+          )}
+          {article.virlo_optimized && (
+            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700">
+              <Zap className="mr-1 h-3 w-3" />
+              Virlo Optimized
             </Badge>
           )}
           <div className="flex items-center gap-2 text-sm text-stone-500">
@@ -164,6 +170,14 @@ export function ArticleReader({ article }: ArticleReaderProps) {
             <p className="text-sm text-stone-500">
               Source: <span className="text-stone-700">{article.source}</span>
             </p>
+            {article.virlo_optimized && article.virlo_score && (
+              <div className="mt-2 flex items-center gap-2 text-sm">
+                <Zap className="h-4 w-4 text-purple-600" />
+                <span className="text-purple-700">
+                  Virlo Viral Score: {article.virlo_score}/100
+                </span>
+              </div>
+            )}
             {article.source_url && (
               <a 
                 href={article.source_url}
