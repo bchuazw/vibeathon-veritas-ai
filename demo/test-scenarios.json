@@ -1,0 +1,171 @@
+{
+  "testScenarios": [
+    {
+      "id": "tech-breakthrough",
+      "name": "Technology Breakthrough",
+      "input": {
+        "topic": "OpenAI announces GPT-5",
+        "trigger": "Manual generation via homepage button"
+      },
+      "expected": {
+        "timeToPublish": "< 5 minutes",
+        "quality": {
+          "headline": "Clear, professional headline about GPT-5 announcement",
+          "structure": "Inverted pyramid (who, what, when, where, why in lead)",
+          "tone": "Neutral, journalistic",
+          "citations": "Minimum 3 inline citations with working links",
+          "sources": "Reputable tech news sources (TechCrunch, The Verge, etc.)"
+        },
+        "confidenceScore": "> 75%",
+        "agentActivity": [
+          "Scout: Detected trend, gathered sources",
+          "Content Creator: Wrote article, verified claims",
+          "Publisher: Formatted and published"
+        ]
+      },
+      "testResult": {
+        "status": "PENDING",
+        "actualTime": null,
+        "actualConfidence": null,
+      "issues": []
+      }
+    },
+    {
+      "id": "finance-news",
+      "name": "Finance News",
+      "input": {
+        "topic": "Fed raises interest rates",
+        "trigger": "Manual generation via homepage button"
+      },
+      "expected": {
+        "timeToPublish": "< 5 minutes",
+        "quality": {
+          "headline": "Clear headline about Fed rate decision",
+          "structure": "Market context, expert quotes, implications",
+          "tone": "Neutral, financial journalism style",
+          "citations": "Bloomberg, Reuters, WSJ or equivalent sources",
+          "marketContext": "Includes market reaction if available"
+        },
+        "confidenceScore": "> 80%",
+        "agentActivity": [
+          "Scout: Detected financial news trend",
+          "Content Creator: Added market context",
+          "Publisher: Included metadata for SEO"
+        ]
+      },
+      "testResult": {
+        "status": "PENDING",
+        "actualTime": null,
+        "actualConfidence": null,
+        "issues": []
+      }
+    },
+    {
+      "id": "sports-event",
+      "name": "Major Sports Event",
+      "input": {
+        "topic": "World Cup final result",
+        "trigger": "Manual generation via homepage button"
+      },
+      "expected": {
+        "timeToPublish": "< 5 minutes",
+        "quality": {
+          "headline": "Score and winner in headline",
+          "structure": "Match summary, key moments, player highlights",
+          "tone": "Excited but professional",
+          "citations": "ESPN, BBC Sport, official sources",
+          "stats": "Key statistics included"
+        },
+        "confidenceScore": "> 85%",
+        "agentActivity": [
+          "Scout: Rapid source gathering from sports feeds",
+          "Content Creator: Match narrative construction",
+          "Publisher: Real-time updates enabled"
+        ]
+      },
+      "testResult": {
+        "status": "PENDING",
+        "actualTime": null,
+        "actualConfidence": null,
+        "issues": []
+      }
+    },
+    {
+      "id": "science-discovery",
+      "name": "Scientific Discovery",
+      "input": {
+        "topic": "New exoplanet discovered",
+        "trigger": "Manual generation via homepage button"
+      },
+      "expected": {
+        "timeToPublish": "< 5 minutes",
+        "quality": {
+          "headline": "Clear description of discovery",
+          "structure": "Discovery details, significance, expert commentary",
+          "tone": "Scientifically accurate but accessible",
+          "citations": "NASA, Nature, Science journal sources",
+          "context": "Explanation of why it matters"
+        },
+        "confidenceScore": "> 80%",
+        "agentActivity": [
+          "Scout: Academic source verification",
+          "Content Creator: Technical translation",
+          "Publisher: Educational formatting"
+        ]
+      },
+      "testResult": {
+        "status": "PENDING",
+        "actualTime": null,
+        "actualConfidence": null,
+        "issues": []
+      }
+    },
+    {
+      "id": "politics-breaking",
+      "name": "Political Breaking News",
+      "input": {
+        "topic": "Election results announcement",
+        "trigger": "Manual generation via homepage button"
+      },
+      "expected": {
+        "timeToPublish": "< 5 minutes",
+        "quality": {
+          "headline": "Neutral, factual headline",
+          "structure": "Results, reactions, implications",
+          "tone": "Strictly neutral, no bias",
+          "citations": "AP, Reuters, official election sources",
+          "balance": "Multiple perspectives if relevant"
+        },
+        "confidenceScore": "> 85%",
+        "agentActivity": [
+          "Scout: Official source prioritization",
+          "Content Creator: Bias checking",
+          "Publisher: Breaking news formatting"
+        ]
+      },
+      "testResult": {
+        "status": "PENDING",
+        "actualTime": null,
+        "actualConfidence": null,
+        "issues": []
+      }
+    }
+  ],
+  "performanceBenchmarks": {
+    "targetTimeToPublish": "300 seconds",
+    "targetConfidenceScore": 0.75,
+    "minimumSourcesRequired": 3,
+    "targetUptime": 0.995
+  },
+  "successCriteria": {
+    "allScenarios": "All 5 scenarios must complete successfully",
+    "averageTime": "Average time < 5 minutes across all scenarios",
+    "confidenceThreshold": "All articles > 75% confidence",
+    "citationRate": "100% of claims must have citations",
+    "sourceQuality": "All sources from reputable domains"
+  },
+  "demoScenario": {
+    "recommendedForDemo": "tech-breakthrough",
+    "reason": "High public interest, clear factual basis, impressive technical demonstration"
+  }
+}
