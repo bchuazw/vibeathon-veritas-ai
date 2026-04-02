@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://veritas-ai-backend-p7t5.onrender.com';
 
 export async function fetchArticle(id: string) {
   const response = await fetch(`${API_BASE_URL}/api/news/article/${id}`);
