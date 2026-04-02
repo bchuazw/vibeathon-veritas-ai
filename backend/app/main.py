@@ -5,11 +5,10 @@ import sys
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.api.routes import router
-from app.api.persistent_rate_limiter import PersistentRateLimiter, get_rate_limiter
+from app.api.persistent_rate_limiter import get_rate_limiter
 
 # Configure logging
 logging.basicConfig(
@@ -32,50 +31,15 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Custom CORS middleware that adds headers to ALL responses including errors
-class CORSMiddlewareWithErrors(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        # Handle preflight requests
-        if request.method == "OPTIONS":
-            response = JSONResponse(content={})
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Max-Age"] = "600"
-            return response
-        
-        try:
-            response = await call_next(request)
-        except Exception as exc:
-            # Handle uncaught exceptions with CORS headers
-            logger.error(f"Unhandled exception: {exc}")
-            response = JSONResponse(
-                status_code=500,
-                content={
-                    "error": "Internal server error",
-                    "message": "An unexpected error occurred. Please try again later."
-                }
-            )
-        
-        # Add CORS headers to all responses
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-        
-        return response
-
-# Add custom CORS middleware first (it needs to wrap everything)
-app.add_middleware(CORSMiddlewareWithErrors)
-
-# Add standard CORS middleware as backup
+# Add CORS middleware - MUST be before router
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 # Include routers
@@ -87,17 +51,59 @@ app.include_router(router)
 async def rate_limit_handler(request: Request, exc):
     """Handle rate limit errors with user-friendly response."""
     retry_after = exc.detail.get("retry_after", 3600) if isinstance(exc.detail, dict) else 3600
-    return JSONResponse(
+    response = JSONResponse(
         status_code=429,
         content={
             "error": "Rate limit exceeded",
             "message": f"Too many requests. Please try again in {retry_after} seconds.",
             "retry_after": retry_after,
-            "limit": 5,
+            "limit": 2,
             "window": "1 hour",
         },
-        headers={"Retry-After": str(retry_after)},
+        headers={
+            "Retry-After": str(retry_after),
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
+        },
     )
+    return response
+
+
+# Global exception handler for all errors - ensures CORS headers are present
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all uncaught exceptions with CORS headers."""
+    logger = logging.getLogger(__name__)
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    
+    response = JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "message": "An unexpected error occurred. Please try again later."
+        },
+    )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
+
+
+# Global exception handler for HTTP exceptions
+from fastapi.exceptions import HTTPException
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions with CORS headers."""
+    response = JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail if isinstance(exc.detail, str) else exc.detail.get("error", "Error"),
+            "message": exc.detail if isinstance(exc.detail, str) else exc.detail.get("message", str(exc.detail)),
+        },
+    )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 
 @app.on_event("startup")
@@ -109,6 +115,8 @@ async def startup_event():
     # Validate configuration
     if not settings.openai_api_key:
         logger.warning("OPENAI_API_KEY not set - article generation will fail")
+    else:
+        logger.info("OPENAI_API_KEY is configured")
     
     if not settings.newsapi_key:
         logger.warning("NEWSAPI_KEY not set - using placeholder")
