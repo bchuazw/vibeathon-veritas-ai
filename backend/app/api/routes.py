@@ -75,8 +75,6 @@ async def health_check():
 async def generate_article(request: Request, article_request: ArticleRequest):
     """Generate an article from a specific topic.
     
-    DEBUG: Route handler entry point
-    
     Args:
         request: FastAPI request object (for rate limiting)
         article_request: Article generation request
@@ -84,10 +82,9 @@ async def generate_article(request: Request, article_request: ArticleRequest):
     Returns:
         Generated article in frontend format
     """
-    logger.info(f"Generate article called with topic: {article_request.topic}")
     # Check rate limit
     limiter = get_rate_limiter()
-    is_allowed, remaining, reset_time = limiter.is_allowed(request)
+    is_allowed, remaining, reset_time = await limiter.is_allowed(request)
     
     if not is_allowed:
         retry_after = int(reset_time - time.time())
@@ -142,14 +139,12 @@ async def generate_article(request: Request, article_request: ArticleRequest):
     except HTTPException:
         raise
     except Exception as e:
-        import traceback
-        error_msg = str(e)
-        logger.error(f"Error generating article: {error_msg}\n{traceback.format_exc()}")
+        logger.error(f"Error generating article: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "Generation failed",
-                "message": f"Debug: {error_msg[:300]}"
+                "message": "An error occurred while generating the article. Please try again."
             }
         )
 
