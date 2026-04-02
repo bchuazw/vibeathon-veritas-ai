@@ -17,14 +17,12 @@ services:
       - key: DEBUG
         value: false
 
-  - type: web
+  - type: static
     name: veritas-ai-frontend
-    runtime: node
     region: singapore
-    plan: free
     rootDir: web
-    buildCommand: npm install && npm run build && npm prune --production
-    startCommand: npx next start -p $PORT
+    buildCommand: npm install && npm run build
+    publishDir: dist
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://veritas-ai-backend.onrender.com
