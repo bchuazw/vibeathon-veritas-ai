@@ -84,7 +84,8 @@ class SQLiteClient:
                 sources TEXT,  -- JSON array
                 created_at TEXT NOT NULL,
                 published_at TEXT,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                credibility_score INTEGER DEFAULT 85
             )
         """)
         
@@ -138,8 +139,8 @@ class SQLiteClient:
             cursor.execute("""
                 INSERT OR REPLACE INTO articles (
                     id, headline, body, summary, keywords, meta_title, meta_description,
-                    topic_id, status, sources, created_at, published_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    topic_id, status, sources, created_at, published_at, updated_at, credibility_score
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 article.id,
                 article.headline,
@@ -154,6 +155,7 @@ class SQLiteClient:
                 created_at,
                 published_at,
                 now,
+                article.credibility_score,
             ))
             
             self._connection.commit()
@@ -334,6 +336,7 @@ class SQLiteClient:
             created_at=created_at or datetime.utcnow(),
             published_at=published_at,
             topic_id=row["topic_id"],
+            credibility_score=row["credibility_score"] if row["credibility_score"] is not None else 85,
         )
 
 

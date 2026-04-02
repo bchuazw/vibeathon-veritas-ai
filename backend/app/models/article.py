@@ -49,12 +49,21 @@ class Article(BaseModel):
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
     
+    # Virlo optimization fields
+    virlo_optimized: bool = False
+    virlo_score: Optional[int] = None  # Viral potential score (0-100)
+    virlo_original_headline: Optional[str] = None
+    virlo_suggested_hashtags: List[str] = []
+    
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)
     published_at: Optional[datetime] = None
     
     # Original topic reference
     topic_id: Optional[str] = None
+    
+    # Credibility score (0-100)
+    credibility_score: int = Field(default=85, ge=0, le=100)
 
 
 class ArticleRequest(BaseModel):

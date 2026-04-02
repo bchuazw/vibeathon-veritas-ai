@@ -88,6 +88,7 @@ class SupabaseClient:
                     }
                     for s in article.sources
                 ],
+                "credibility_score": article.credibility_score,
             }
             
             result = self._client.table("articles").upsert(article_data).execute()
@@ -241,6 +242,7 @@ class SupabaseClient:
             created_at=created_at or datetime.utcnow(),
             published_at=published_at,
             topic_id=data.get("topic_id"),
+            credibility_score=data.get("credibility_score", 85),
         )
 
 

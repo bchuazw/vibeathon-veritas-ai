@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from app.config import get_settings
 from app.integrations.supabase_client import get_supabase_client
+from app.integrations.virlo_client import VirloClient
 from app.models.article import (
     Article,
     ArticleRequest,
@@ -62,7 +63,7 @@ async def health_check():
     )
 
 
-@router.post("/api/news/generate", response_model=ArticleResponse)
+@router.post("/api/news/generate")
 async def generate_article(request: ArticleRequest):
     """Generate an article from a specific topic.
     
@@ -70,7 +71,7 @@ async def generate_article(request: ArticleRequest):
         request: Article generation request
         
     Returns:
-        Generated article
+        Generated article in frontend format
     """
     start_time = time.time()
     supabase = get_supabase_client()
@@ -84,18 +85,18 @@ async def generate_article(request: ArticleRequest):
         
         processing_time = int((time.time() - start_time) * 1000)
         
-        return ArticleResponse(
-            success=True,
-            article=article,
-            processing_time_ms=processing_time,
-        )
+        return {
+            "success": True,
+            "article": _article_to_frontend(article),
+            "processing_time_ms": processing_time,
+        }
         
     except Exception as e:
         logger.error(f"Error generating article: {e}")
-        return ArticleResponse(
-            success=False,
-            error=str(e),
-        )
+        return {
+            "success": False,
+            "error": str(e),
+        }
 
 
 @router.get("/api/news/breaking", response_model=BreakingNewsResponse)
@@ -158,7 +159,37 @@ async def get_generation_status(job_id: str):
     )
 
 
-@router.get("/api/news/article/{article_id}", response_model=Article)
+def _article_to_frontend(article: Article) -> dict:
+    """Convert backend Article model to frontend format.
+    
+    Args:
+        article: Backend Article model
+        
+    Returns:
+        Dict with frontend-expected field names
+    """
+    # Get first source for source/source_url fields
+    first_source = article.sources[0] if article.sources else None
+    
+    return {
+        "id": article.id,
+        "title": article.headline,
+        "content": article.body,
+        "summary": article.summary or "",
+        "source": first_source.name if first_source else "Veritas AI",
+        "source_url": first_source.url if first_source else None,
+        "published_at": article.published_at.isoformat() if article.published_at else article.created_at.isoformat(),
+        "category": article.keywords[0] if article.keywords else "News",
+        "credibility_score": article.credibility_score,
+        "is_breaking": False,  # Default value
+        "image_url": None,  # Default value
+        "author": None,  # Default value
+        "created_at": article.created_at.isoformat(),
+        "updated_at": article.created_at.isoformat(),
+    }
+
+
+@router.get("/api/news/article/{article_id}")
 async def get_article(article_id: str):
     """Get a published article.
     
@@ -166,7 +197,7 @@ async def get_article(article_id: str):
         article_id: Article ID
         
     Returns:
-        Article content
+        Article content in frontend format
     """
     # Try Supabase first
     supabase = get_supabase_client()
@@ -179,7 +210,7 @@ async def get_article(article_id: str):
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     
-    return article
+    return {"article": _article_to_frontend(article)}
 
 
 @router.get("/api/news/articles")
@@ -191,24 +222,84 @@ async def list_articles(limit: int = 10, offset: int = 0):
         offset: Number of articles to skip
         
     Returns:
-        List of articles
+        List of articles in frontend format
     """
     supabase = get_supabase_client()
     articles = await supabase.list_recent_articles(limit=limit, offset=offset)
     
     return {
-        "articles": [
-            {
-                "id": a.id,
-                "headline": a.headline,
-                "summary": a.summary,
-                "keywords": a.keywords,
-                "created_at": a.created_at.isoformat() if a.created_at else None,
-            }
-            for a in articles
-        ],
+        "articles": [_article_to_frontend(a) for a in articles],
         "total": len(articles),
     }
+
+
+@router.post("/api/news/optimize")
+async def optimize_with_virlo(request: GenerateRequest):
+    """Optimize article content using Virlo viral insights.
+    
+    Args:
+        request: Generate request with topic
+        
+    Returns:
+        Virlo optimization results
+    """
+    try:
+        virlo = VirloClient()
+        
+        # Optimize the headline
+        headline_result = await virlo.optimize_headline(
+            headline=request.topic,
+            topic=request.topic
+        )
+        
+        # Get trending data
+        trending_topics = await virlo.get_trending_topics(limit=5)
+        trending_hashtags = await virlo.get_trending_hashtags(limit=10)
+        
+        return {
+            "success": True,
+            "headline_optimization": headline_result,
+            "trending_topics": trending_topics,
+            "trending_hashtags": trending_hashtags,
+            "optimized_with": "Virlo AI"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error optimizing with Virlo: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/api/news/virlo/status")
+async def get_virlo_status():
+    """Get Virlo API status and trending data.
+    
+    Returns:
+        Virlo API status and sample trending data
+    """
+    try:
+        virlo = VirloClient()
+        
+        # Fetch trending data
+        trending_topics = await virlo.get_trending_topics(limit=5)
+        trending_hashtags = await virlo.get_trending_hashtags(limit=10)
+        
+        return {
+            "status": "active",
+            "enabled": True,
+            "trending_topics_count": len(trending_topics),
+            "trending_hashtags_count": len(trending_hashtags),
+            "trending_topics": trending_topics,
+            "trending_hashtags": trending_hashtags[:5],
+            "message": "Virlo viral content optimization is active"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching Virlo status: {e}")
+        return {
+            "status": "error",
+            "enabled": False,
+            "message": str(e)
+        }
 
 
 @router.get("/api/news/topics")
