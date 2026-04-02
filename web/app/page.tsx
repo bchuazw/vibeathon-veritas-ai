@@ -15,6 +15,7 @@ import { fetchBreakingNews, generateArticle, APIError } from "@/lib/api";
 import { useRateLimit, useThrottle } from "@/lib/rate-limit";
 import { Article } from "@/types/article";
 import { Newspaper, Sparkles, AlertCircle, X, Clock } from "lucide-react";
+import { RateLimitDisplay } from "@/components/CountdownTimer";
 
 // Maximum retries for failed requests
 const MAX_RETRIES = 3;
@@ -30,7 +31,12 @@ export default function Home() {
   const [remainingRequests, setRemainingRequests] = useState<number | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const { checkRateLimit, recordRequest } = useRateLimit();
+  const { checkRateLimit, recordRequest, getRateLimitState } = useRateLimit();
+  const [rateLimitState, setRateLimitState] = useState<{ remaining: number; resetTime: number | null; isLimited: boolean }>({ 
+    remaining: 2, 
+    resetTime: null, 
+    isLimited: false 
+  });
 
   // Load articles on mount
   useEffect(() => {
@@ -41,7 +47,8 @@ export default function Home() {
   useEffect(() => {
     const limit = checkRateLimit();
     setRemainingRequests(limit.remainingRequests);
-  }, [checkRateLimit]);
+    setRateLimitState(getRateLimitState());
+  }, [checkRateLimit, getRateLimitState]);
 
   const loadArticles = useCallback(async (retryAttempt = 0) => {
     setIsLoading(true);
@@ -76,7 +83,9 @@ export default function Home() {
   const throttledGenerate = useThrottle(async () => {
     // Check rate limit before proceeding
     const limitCheck = checkRateLimit();
+    const currentState = getRateLimitState();
     setRemainingRequests(limitCheck.remainingRequests);
+    setRateLimitState(currentState);
 
     if (!limitCheck.canProceed) {
       setRateLimitError(limitCheck.message || "Rate limit exceeded. Please try again later.");
@@ -98,6 +107,7 @@ export default function Home() {
         // Update remaining requests after successful generation
         const updatedLimit = checkRateLimit();
         setRemainingRequests(updatedLimit.remainingRequests);
+        setRateLimitState(getRateLimitState());
       }
     } catch (err) {
       const message = err instanceof APIError 
@@ -187,30 +197,13 @@ export default function Home() {
             </motion.div>
           </motion.div>
 
-          {/* Rate Limit Indicator */}
-          {remainingRequests !== null && remainingRequests < 2 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4"
-            >
-              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
-                remainingRequests === 0 
-                  ? "bg-red-100 text-red-700" 
-                  : remainingRequests <= 2 
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-blue-100 text-blue-700"
-              }`}>
-                <Clock className="h-4 w-4" />
-                <span>
-                  {remainingRequests === 0 
-                    ? "Rate limit reached"
-                    : `${remainingRequests} generation${remainingRequests !== 1 ? 's' : ''} remaining this hour`
-                  }
-                </span>
-              </div>
-            </motion.div>
-          )}
+          {/* Rate Limit Indicator with Countdown */}
+          <RateLimitDisplay 
+            remainingRequests={rateLimitState.remaining}
+            resetTime={rateLimitState.resetTime}
+            isLimited={rateLimitState.isLimited}
+            onReset={() => setRateLimitState(getRateLimitState())}
+          />
 
           <Separator className="mb-12" />
 
