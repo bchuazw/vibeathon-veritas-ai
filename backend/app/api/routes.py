@@ -75,6 +75,8 @@ async def health_check():
 async def generate_article(request: Request, article_request: ArticleRequest):
     """Generate an article from a specific topic.
     
+    DEBUG: Route handler entry point
+    
     Args:
         request: FastAPI request object (for rate limiting)
         article_request: Article generation request
@@ -82,6 +84,7 @@ async def generate_article(request: Request, article_request: ArticleRequest):
     Returns:
         Generated article in frontend format
     """
+    logger.info(f"Generate article called with topic: {article_request.topic}")
     # Check rate limit
     limiter = get_rate_limiter()
     is_allowed, remaining, reset_time = limiter.is_allowed(request)

@@ -73,14 +73,16 @@ async def rate_limit_handler(request: Request, exc):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle all uncaught exceptions with CORS headers."""
+    import traceback
     logger = logging.getLogger(__name__)
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    tb = traceback.format_exc()
+    logger.error(f"Unhandled exception: {exc}\n{tb}")
     
     response = JSONResponse(
         status_code=500,
         content={
             "error": "Internal server error",
-            "message": "An unexpected error occurred. Please try again later."
+            "message": f"Debug: {str(exc)[:500]}"
         },
     )
     response.headers["Access-Control-Allow-Origin"] = "*"
