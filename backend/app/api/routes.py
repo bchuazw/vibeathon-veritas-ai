@@ -131,12 +131,15 @@ async def generate_article(request: Request, article_request: ArticleRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error generating article: {e}", exc_info=True)
+        import traceback
+        error_msg = str(e)
+        tb = traceback.format_exc()
+        logger.error(f"Error generating article: {error_msg}\n{tb}")
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "Generation failed",
-                "message": "An error occurred while generating the article. Please try again."
+                "message": f"Error: {error_msg[:200]}"
             }
         )
 
