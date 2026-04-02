@@ -28,10 +28,17 @@ async function ArticleContent({ id }: { id: string }) {
   }
 }
 
-export default function ArticlePage({ params }: { params: { id: string } }) {
+// Next.js 15 params is now a Promise
+export default async function ArticlePage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  const { id } = await params;
+  
   return (
     <div className="container py-16">
-      <ArticleContent id={params.id} />
+      <ArticleContent id={id} />
     </div>
   );
 }
