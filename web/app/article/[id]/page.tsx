@@ -4,7 +4,7 @@ import { Article } from "@/types/article";
 
 // Generate static params for build time
 export function generateStaticParams() {
-  // Return placeholder IDs - actual data fetched client-side
+  // Return placeholder IDs - actual data fetched at runtime
   return [
     { id: "demo-1" },
     { id: "demo-2" },
@@ -12,20 +12,18 @@ export function generateStaticParams() {
   ];
 }
 
-// Generate metadata for the page
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  return {
-    title: `Article ${params.id} | Veritas AI`,
-  };
-}
-
-// Server component that renders the client component
-export default async function ArticlePage({ params }: { params: { id: string } }) {
+// Server component that renders the article
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   let article: Article | null = null;
   let error: string | null = null;
 
   try {
-    const data = await fetchArticle(params.id);
+    const data = await fetchArticle(id);
     article = data.article;
   } catch (err) {
     console.error("Failed to load article:", err);
