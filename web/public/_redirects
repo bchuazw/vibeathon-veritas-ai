@@ -1,2 +1,2 @@
-/article/*  /article/_fallback/index.html  200
-/article/:id  /article/_fallback/index.html  200
+# Redirect all article paths to the fallback page
+/article/*    /article/_fallback/index.html    200
