@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
+import { TargetMarket } from "@/components/TargetMarket";
+import { BusinessModel } from "@/components/BusinessModel";
 import { ArticleList } from "@/components/ArticleList";
 import { GenerateButton } from "@/components/GenerateButton";
+import { ErrorBoundary, ErrorDisplay } from "@/components/ErrorBoundary";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { fetchBreakingNews, generateArticle, APIError } from "@/lib/api";
+import { useRateLimit, useThrottle } from "@/lib/rate-limit";
 import { Article } from "@/types/article";
-import { Newspaper, Sparkles, AlertCircle, X } from "lucide-react";
+import { Newspaper, Sparkles, AlertCircle, X, Clock } from "lucide-react";
+
+// Maximum retries for failed requests
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -18,36 +26,78 @@ export default function Home() {
   const [topic, setTopic] = useState("latest technology news");
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState<string | null>(null);
+  const [remainingRequests, setRemainingRequests] = useState<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
+  const { checkRateLimit, recordRequest } = useRateLimit();
+
+  // Load articles on mount
   useEffect(() => {
     loadArticles();
   }, []);
 
-  const loadArticles = async () => {
+  // Update remaining requests on mount
+  useEffect(() => {
+    const limit = checkRateLimit();
+    setRemainingRequests(limit.remainingRequests);
+  }, [checkRateLimit]);
+
+  const loadArticles = useCallback(async (retryAttempt = 0) => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await fetchBreakingNews();
       setArticles(data.articles || []);
+      setRetryCount(0);
     } catch (err) {
       const message = err instanceof APIError 
         ? err.message 
         : "Failed to load articles. Please try again later.";
+      
+      // Retry logic for network errors
+      if (retryAttempt < MAX_RETRIES && err instanceof APIError && err.isNetworkError) {
+        setRetryCount(retryAttempt + 1);
+        setTimeout(() => {
+          loadArticles(retryAttempt + 1);
+        }, RETRY_DELAY_MS * (retryAttempt + 1));
+        return;
+      }
+      
       setError(message);
       console.error("Failed to load articles:", err);
       setArticles([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleGenerate = async () => {
+  // Throttled generate handler to prevent spam clicks
+  const throttledGenerate = useThrottle(async () => {
+    // Check rate limit before proceeding
+    const limitCheck = checkRateLimit();
+    setRemainingRequests(limitCheck.remainingRequests);
+
+    if (!limitCheck.canProceed) {
+      setRateLimitError(limitCheck.message || "Rate limit exceeded. Please try again later.");
+      return;
+    }
+
+    setRateLimitError(null);
     setIsGenerating(true);
     setError(null);
+
     try {
+      // Record the request for rate limiting
+      recordRequest();
+      
       const result = await generateArticle(topic);
+      
       if (result.success && result.article) {
         setArticles((prev) => [result.article, ...prev]);
+        // Update remaining requests after successful generation
+        const updatedLimit = checkRateLimit();
+        setRemainingRequests(updatedLimit.remainingRequests);
       }
     } catch (err) {
       const message = err instanceof APIError 
@@ -58,13 +108,21 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, 2000); // 2 second throttle between clicks
+
+  const handleGenerate = useCallback(async () => {
+    await throttledGenerate();
+  }, [throttledGenerate]);
 
   return (
-    <>
+    <ErrorBoundary>
       <Hero />
       
       <HowItWorks />
+      
+      <TargetMarket />
+      
+      <BusinessModel />
       
       <section id="latest" className="py-20 md:py-28 bg-stone-50/50" aria-labelledby="latest-stories-title">
         <div className="container">
@@ -129,11 +187,36 @@ export default function Home() {
             </motion.div>
           </motion.div>
 
+          {/* Rate Limit Indicator */}
+          {remainingRequests !== null && remainingRequests < 5 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4"
+            >
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+                remainingRequests === 0 
+                  ? "bg-red-100 text-red-700" 
+                  : remainingRequests <= 2 
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-blue-100 text-blue-700"
+              }`}>
+                <Clock className="h-4 w-4" />
+                <span>
+                  {remainingRequests === 0 
+                    ? "Rate limit reached"
+                    : `${remainingRequests} generation${remainingRequests !== 1 ? 's' : ''} remaining this hour`
+                  }
+                </span>
+              </div>
+            </motion.div>
+          )}
+
           <Separator className="mb-12" />
 
-          {/* Error Display */}
+          {/* Rate Limit Error Display */}
           <AnimatePresence>
-            {error && (
+            {rateLimitError && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -142,28 +225,46 @@ export default function Home() {
                 role="alert"
                 aria-live="polite"
               >
-                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <Clock className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1">
-                    <p className="text-sm text-red-800">{error}</p>
-                    <button
-                      onClick={loadArticles}
-                      className="mt-2 text-sm font-medium text-red-700 hover:text-red-900 underline underline-offset-2"
-                    >
-                      Try again
-                    </button>
+                    <p className="text-sm text-amber-800">{rateLimitError}</p>
                   </div>
                   <button
-                    onClick={() => setError(null)}
-                    className="p-1 hover:bg-red-100 rounded-lg transition-colors"
-                    aria-label="Dismiss error"
+                    onClick={() => setRateLimitError(null)}
+                    className="p-1 hover:bg-amber-100 rounded-lg transition-colors"
+                    aria-label="Dismiss rate limit warning"
                   >
-                    <X className="h-4 w-4 text-red-600" />
+                    <X className="h-4 w-4 text-amber-600" />
                   </button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* General Error Display */}
+          <ErrorDisplay 
+            error={error} 
+            onDismiss={() => setError(null)}
+            onRetry={() => loadArticles()}
+          />
+
+          {/* Retry indicator */}
+          {retryCount > 0 && retryCount < MAX_RETRIES && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-4 flex items-center gap-2 text-sm text-stone-500"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="h-4 w-4" />
+              </motion.div>
+              Retrying... (attempt {retryCount}/{MAX_RETRIES})
+            </motion.div>
+          )}
 
           {/* Articles Grid */}
           <ArticleList articles={articles} isLoading={isLoading} />
@@ -197,6 +298,6 @@ export default function Home() {
           </motion.div>
         </div>
       </footer>
-    </>
+    </ErrorBoundary>
   );
 }

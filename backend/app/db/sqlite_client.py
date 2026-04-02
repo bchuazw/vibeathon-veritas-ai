@@ -89,6 +89,16 @@ class SQLiteClient:
             )
         """)
         
+        # Rate limits table for persistent tracking
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS rate_limits (
+                client_id TEXT PRIMARY KEY,
+                requests INTEGER DEFAULT 0,
+                window_start TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        
         # Create index on created_at for efficient sorting
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_articles_created_at 
@@ -338,6 +348,103 @@ class SQLiteClient:
             topic_id=row["topic_id"],
             credibility_score=row["credibility_score"] if row["credibility_score"] is not None else 85,
         )
+
+
+    async def get_rate_limit(self, client_id: str) -> Optional[dict]:
+        """Get rate limit info for a client.
+        
+        Args:
+            client_id: The client identifier (IP hash)
+            
+        Returns:
+            Rate limit data or None if not found
+        """
+        if not self.is_connected:
+            return None
+        
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(
+                "SELECT * FROM rate_limits WHERE client_id = ?",
+                (client_id,)
+            )
+            row = cursor.fetchone()
+            cursor.close()
+            
+            if row is None:
+                return None
+            
+            return {
+                "client_id": row["client_id"],
+                "requests": row["requests"],
+                "window_start": row["window_start"],
+                "updated_at": row["updated_at"],
+            }
+        except Exception as e:
+            logger.error(f"Error fetching rate limit for {client_id}: {e}")
+            return None
+    
+    async def update_rate_limit(self, client_id: str, requests: int, window_start: datetime) -> bool:
+        """Update rate limit for a client.
+        
+        Args:
+            client_id: The client identifier
+            requests: Number of requests
+            window_start: Start of the rate limit window
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.is_connected:
+            return False
+        
+        try:
+            cursor = self._connection.cursor()
+            now = datetime.utcnow().isoformat()
+            
+            cursor.execute("""
+                INSERT OR REPLACE INTO rate_limits 
+                (client_id, requests, window_start, updated_at)
+                VALUES (?, ?, ?, ?)
+            """, (client_id, requests, window_start.isoformat(), now))
+            
+            self._connection.commit()
+            cursor.close()
+            return True
+        except Exception as e:
+            logger.error(f"Error updating rate limit for {client_id}: {e}")
+            return False
+    
+    async def cleanup_old_rate_limits(self, older_than_hours: int = 48) -> int:
+        """Clean up old rate limit entries.
+        
+        Args:
+            older_than_hours: Delete entries older than this many hours
+            
+        Returns:
+            Number of entries deleted
+        """
+        if not self.is_connected:
+            return 0
+        
+        try:
+            cursor = self._connection.cursor()
+            cutoff = (datetime.utcnow() - __import__('datetime').timedelta(hours=older_than_hours)).isoformat()
+            
+            cursor.execute(
+                "DELETE FROM rate_limits WHERE updated_at < ?",
+                (cutoff,)
+            )
+            
+            deleted = cursor.rowcount
+            self._connection.commit()
+            cursor.close()
+            
+            logger.info(f"Cleaned up {deleted} old rate limit entries")
+            return deleted
+        except Exception as e:
+            logger.error(f"Error cleaning up rate limits: {e}")
+            return 0
 
 
 # Global client instance
