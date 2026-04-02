@@ -13,7 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 logger = logging.getLogger(__name__)
 
 # Rate limit configuration
-RATE_LIMIT_REQUESTS = 5  # requests per window
+RATE_LIMIT_REQUESTS = 2  # requests per window
 RATE_LIMIT_WINDOW_SECONDS = 3600  # 1 hour
 
 

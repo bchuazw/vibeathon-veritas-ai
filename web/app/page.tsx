@@ -188,7 +188,7 @@ export default function Home() {
           </motion.div>
 
           {/* Rate Limit Indicator */}
-          {remainingRequests !== null && remainingRequests < 5 && (
+          {remainingRequests !== null && remainingRequests < 2 && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
