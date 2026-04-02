@@ -11,11 +11,33 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://veritas-ai-back
 
 export default function ArticlePageClient() {
   const params = useParams();
-  const id = params?.id as string;
+  const paramId = params?.id as string;
   
+  // Handle fallback redirect from 404.html
+  const [id, setId] = useState<string>(paramId);
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for stored article ID from 404 redirect (old method)
+    if (paramId === '_fallback') {
+      const storedId = sessionStorage.getItem('articleId');
+      if (storedId) {
+        setId(storedId);
+        sessionStorage.removeItem('articleId');
+        return;
+      }
+      
+      // Check for query parameter (new method from not-found.tsx)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryId = urlParams.get('id');
+      if (queryId) {
+        setId(queryId);
+        return;
+      }
+    }
+  }, [paramId]);
 
   useEffect(() => {
     if (!id || id === '_fallback') return;
