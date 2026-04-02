@@ -5,6 +5,7 @@ import sys
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.api.routes import router
@@ -31,13 +32,47 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Rate limiting is applied at the route level for better control
-# See @router.post("/api/news/generate") in routes.py
+# Custom CORS middleware that adds headers to ALL responses including errors
+class CORSMiddlewareWithErrors(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Handle preflight requests
+        if request.method == "OPTIONS":
+            response = JSONResponse(content={})
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Max-Age"] = "600"
+            return response
+        
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            # Handle uncaught exceptions with CORS headers
+            logger.error(f"Unhandled exception: {exc}")
+            response = JSONResponse(
+                status_code=500,
+                content={
+                    "error": "Internal server error",
+                    "message": "An unexpected error occurred. Please try again later."
+                }
+            )
+        
+        # Add CORS headers to all responses
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        
+        return response
 
-# Add CORS middleware
+# Add custom CORS middleware first (it needs to wrap everything)
+app.add_middleware(CORSMiddlewareWithErrors)
+
+# Add standard CORS middleware as backup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
