@@ -3,7 +3,7 @@ import logging
 import time
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
 from pydantic import BaseModel
 
 from app.config import get_settings
@@ -18,6 +18,7 @@ from app.models.article import (
     NewsTopic,
 )
 from app.pipeline.runner import VeritasPipeline
+from app.api.persistent_rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -64,21 +65,50 @@ async def health_check():
 
 
 @router.post("/api/news/generate")
-async def generate_article(request: ArticleRequest):
+async def generate_article(request: Request, article_request: ArticleRequest):
     """Generate an article from a specific topic.
     
     Args:
-        request: Article generation request
+        request: FastAPI request object (for rate limiting)
+        article_request: Article generation request
         
     Returns:
         Generated article in frontend format
     """
+    # Check rate limit
+    limiter = get_rate_limiter()
+    is_allowed, remaining, reset_time = limiter.is_allowed(request)
+    
+    if not is_allowed:
+        retry_after = int(reset_time - time.time())
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "Rate limit exceeded",
+                "message": f"Too many requests. Please try again in {retry_after} seconds.",
+                "retry_after": retry_after,
+            }
+        )
+    
     start_time = time.time()
     supabase = get_supabase_client()
     
     try:
+        # Validate input
+        if not article_request.topic or len(article_request.topic.strip()) < 3:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "Invalid topic", "message": "Topic must be at least 3 characters long"}
+            )
+        
+        if len(article_request.topic) > 200:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "Topic too long", "message": "Topic must be less than 200 characters"}
+            )
+        
         # Run pipeline with provided topic
-        article = await pipeline.run_breaking_news(topic=request.topic)
+        article = await pipeline.run_breaking_news(topic=article_request.topic)
         
         # Store article in memory (for immediate retrieval)
         pipeline._articles[article.id] = article
@@ -92,14 +122,23 @@ async def generate_article(request: ArticleRequest):
             "success": True,
             "article": _article_to_frontend(article),
             "processing_time_ms": processing_time,
+            "rate_limit": {
+                "remaining": remaining - 1,
+                "reset_time": int(reset_time),
+            }
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error generating article: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-        }
+        logger.error(f"Error generating article: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Generation failed",
+                "message": "An error occurred while generating the article. Please try again."
+            }
+        )
 
 
 @router.get("/api/news/breaking", response_model=BreakingNewsResponse)
@@ -222,23 +261,47 @@ async def get_article(article_id: str):
 
 
 @router.get("/api/news/articles")
-async def list_articles(limit: int = 10, offset: int = 0):
+async def list_articles(request: Request, limit: int = 10, offset: int = 0):
     """List recent articles from Supabase.
     
     Args:
-        limit: Maximum number of articles to return
+        request: FastAPI request object
+        limit: Maximum number of articles to return (max 50)
         offset: Number of articles to skip
         
     Returns:
         List of articles in frontend format
     """
-    supabase = get_supabase_client()
-    articles = await supabase.list_recent_articles(limit=limit, offset=offset)
+    # Validate and clamp limit
+    if limit < 1:
+        limit = 10
+    if limit > 50:
+        limit = 50
+    if offset < 0:
+        offset = 0
     
-    return {
-        "articles": [_article_to_frontend(a) for a in articles],
-        "total": len(articles),
-    }
+    # Get rate limit info
+    limiter = get_rate_limiter()
+    remaining, reset_time = limiter.get_limit_info(request)
+    
+    try:
+        supabase = get_supabase_client()
+        articles = await supabase.list_recent_articles(limit=limit, offset=offset)
+        
+        return {
+            "articles": [_article_to_frontend(a) for a in articles],
+            "total": len(articles),
+            "rate_limit": {
+                "remaining": remaining,
+                "reset_time": int(reset_time),
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error listing articles: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "Failed to fetch articles", "message": "Please try again later."}
+        )
 
 
 @router.post("/api/news/optimize")

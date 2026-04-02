@@ -2,11 +2,13 @@
 import logging
 import sys
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.api.routes import router
+from app.api.persistent_rate_limiter import PersistentRateLimiter, get_rate_limiter
 
 # Configure logging
 logging.basicConfig(
@@ -29,6 +31,9 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# Rate limiting is applied at the route level for better control
+# See @router.post("/api/news/generate") in routes.py
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -40,6 +45,24 @@ app.add_middleware(
 
 # Include routers
 app.include_router(router)
+
+
+# Global exception handler for rate limiting
+@app.exception_handler(429)
+async def rate_limit_handler(request: Request, exc):
+    """Handle rate limit errors with user-friendly response."""
+    retry_after = exc.detail.get("retry_after", 3600) if isinstance(exc.detail, dict) else 3600
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "Rate limit exceeded",
+            "message": f"Too many requests. Please try again in {retry_after} seconds.",
+            "retry_after": retry_after,
+            "limit": 5,
+            "window": "1 hour",
+        },
+        headers={"Retry-After": str(retry_after)},
+    )
 
 
 @app.on_event("startup")

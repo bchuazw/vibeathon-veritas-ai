@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Loader2, Wand2 } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useThrottle } from "@/lib/rate-limit";
 
 interface GenerateButtonProps {
   onGenerate?: () => Promise<void>;
@@ -22,6 +23,7 @@ export function GenerateButton({
 }: GenerateButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
 
   const generationSteps = [
     "Analyzing sources...",
@@ -30,7 +32,18 @@ export function GenerateButton({
     "Optimizing content...",
   ];
 
-  const handleClick = async () => {
+  // Minimum time between clicks (3 seconds)
+  const MIN_CLICK_INTERVAL = 3000;
+
+  const handleClick = useCallback(async () => {
+    // Prevent rapid clicks
+    const now = Date.now();
+    if (now - lastClickTime < MIN_CLICK_INTERVAL) {
+      console.log("Click throttled - too soon");
+      return;
+    }
+    setLastClickTime(now);
+
     if (!onGenerate || isGenerating) return;
     
     setIsGenerating(true);
@@ -39,7 +52,7 @@ export function GenerateButton({
     // Cycle through generation steps
     const stepInterval = setInterval(() => {
       setGenerationStep((prev) => (prev + 1) % generationSteps.length);
-    }, 1500);
+    }, 2000);
     
     try {
       await onGenerate();
@@ -50,14 +63,17 @@ export function GenerateButton({
       setIsGenerating(false);
       setGenerationStep(0);
     }
-  };
+  }, [onGenerate, isGenerating, lastClickTime, generationSteps.length]);
+
+  // Apply throttling at hook level as additional safeguard
+  const throttledHandleClick = useThrottle(handleClick, 2000);
 
   return (
     <Button
       variant={variant}
       size={size}
       className={`relative overflow-hidden group ${className}`}
-      onClick={handleClick}
+      onClick={throttledHandleClick}
       disabled={isGenerating}
       aria-busy={isGenerating}
       aria-label={isGenerating ? "Generating article, please wait" : children?.toString()}
@@ -118,6 +134,7 @@ export function GenerateButton({
               initial={false}
               animate={{ rotate: [0, 15, -15, 0] }}
               transition={{ duration: 0.5 }}
+              whileHover={{ scale: 1.2 }}
               className="mr-2"
             >
               <Sparkles className="h-4 w-4" />
