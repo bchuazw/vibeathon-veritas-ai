@@ -1,55 +1,35 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { ArticleReader } from "@/components/ArticleReader";
 import { fetchArticle } from "@/lib/api";
 import { Article } from "@/types/article";
-import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ArticlePage() {
-  const params = useParams();
-  const [article, setArticle] = useState<Article | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Generate static params for build time
+export function generateStaticParams() {
+  // Return placeholder IDs - actual data fetched client-side
+  return [
+    { id: "demo-1" },
+    { id: "demo-2" },
+    { id: "demo-3" },
+  ];
+}
 
-  useEffect(() => {
-    const loadArticle = async () => {
-      if (!params.id) return;
-      
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const data = await fetchArticle(params.id as string);
-        setArticle(data.article);
-      } catch (err) {
-        console.error("Failed to load article:", err);
-        setError("Failed to load article. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+// Generate metadata for the page
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  return {
+    title: `Article ${params.id} | Veritas AI`,
+  };
+}
 
-    loadArticle();
-  }, [params.id]);
+// Server component that renders the client component
+export default async function ArticlePage({ params }: { params: { id: string } }) {
+  let article: Article | null = null;
+  let error: string | null = null;
 
-  if (isLoading) {
-    return (
-      <div className="container py-16">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="aspect-[21/9] w-full" />
-          <div className="space-y-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      </div>
-    );
+  try {
+    const data = await fetchArticle(params.id);
+    article = data.article;
+  } catch (err) {
+    console.error("Failed to load article:", err);
+    error = "Failed to load article. Please try again.";
   }
 
   if (error || !article) {
