@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     minimax_temperature: float = 0.7
     
     # Legacy OpenAI settings (deprecated, kept for backwards compatibility)
-    openai_model: str = "gpt-4"
+    openai_model: str = "gpt-4-turbo-preview"
     openai_max_tokens: int = 2000
     openai_temperature: float = 0.7
     
