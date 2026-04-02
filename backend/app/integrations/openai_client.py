@@ -66,12 +66,15 @@ Respond in JSON format:
             return json.loads(content)
             
         except Exception as e:
-            logger.error(f"Error researching topic: {e}")
+            import traceback
+            error_msg = str(e)
+            tb = traceback.format_exc()
+            logger.error(f"Error researching topic: {error_msg}\n{tb}")
             return {
-                "key_facts": [],
+                "key_facts": [f"Error: {error_msg[:100]}"],
                 "perspectives": [],
                 "conflicts": [],
-                "context": ""
+                "context": f"Error during research: {error_msg}"
             }
     
     async def write_article(
@@ -126,10 +129,13 @@ Respond in JSON format:
             return json.loads(content)
             
         except Exception as e:
-            logger.error(f"Error writing article: {e}")
+            import traceback
+            error_msg = str(e)
+            tb = traceback.format_exc()
+            logger.error(f"Error writing article: {error_msg}\n{tb}")
             return {
-                "headline": f"Error: Could not write article about {topic}",
-                "body": "An error occurred during article generation.",
+                "headline": f"Error: {error_msg[:100]}",
+                "body": f"Error during generation: {error_msg}",
                 "summary": ""
             }
     
