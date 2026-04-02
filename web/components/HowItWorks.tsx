@@ -45,9 +45,9 @@ const agents = [
 
 export function HowItWorks() {
   return (
-    <section className="py-20 md:py-28 bg-white relative overflow-hidden">
+    <section className="py-20 md:py-28 bg-white relative overflow-hidden" aria-labelledby="how-it-works-title">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-stone-100/50 to-transparent blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-tl from-stone-100/50 to-transparent blur-3xl" />
       </div>
@@ -73,7 +73,7 @@ export function HowItWorks() {
               3-Agent AI Pipeline
             </Badge>
           </motion.div>
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl md:text-5xl">
+          <h2 id="how-it-works-title" className="font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl md:text-5xl">
             How Veritas AI Works
           </h2>
           <p className="mt-4 text-lg text-stone-600 max-w-2xl mx-auto">

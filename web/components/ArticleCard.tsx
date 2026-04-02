@@ -44,7 +44,7 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
       <Link href={`/article/${article.id}`} className="group block">
         <Card className="h-full overflow-hidden border-stone-200/60 bg-white/80 backdrop-blur-sm shadow-card hover:shadow-card-hover transition-all duration-500 rounded-2xl">
           {/* Image container */}
-          <div className="relative aspect-[16/10] overflow-hidden">
+          <div className="relative aspect-[16/10] overflow-hidden bg-stone-100">
             {article.image_url ? (
               <Image
                 src={article.image_url}
@@ -52,6 +52,8 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
                 fill
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading={index < 3 ? "eager" : "lazy"}
+                decoding="async"
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">

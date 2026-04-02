@@ -38,6 +38,7 @@ export function Hero() {
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
+          role="banner"
         >
           {/* Badge */}
           <motion.div variants={fadeIn} className="mb-6">
