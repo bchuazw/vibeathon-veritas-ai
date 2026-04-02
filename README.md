@@ -222,3 +222,4 @@ MIT License — Built for the Vibeathon hackathon.
 ---
 
 Built with ✨ by the Veritas AI team.
+# Trigger blueprint sync
