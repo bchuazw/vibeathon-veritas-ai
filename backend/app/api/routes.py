@@ -80,7 +80,10 @@ async def generate_article(request: ArticleRequest):
         # Run pipeline with provided topic
         article = await pipeline.run_breaking_news(topic=request.topic)
         
-        # Store article in Supabase
+        # Store article in memory (for immediate retrieval)
+        pipeline._articles[article.id] = article
+        
+        # Store article in Supabase/SQLite
         await supabase.store_article(article)
         
         processing_time = int((time.time() - start_time) * 1000)
@@ -186,6 +189,11 @@ def _article_to_frontend(article: Article) -> dict:
         "author": None,  # Default value
         "created_at": article.created_at.isoformat(),
         "updated_at": article.created_at.isoformat(),
+        # Virlo optimization fields
+        "virlo_optimized": getattr(article, 'virlo_optimized', False),
+        "virlo_score": getattr(article, 'virlo_score', None),
+        "virlo_original_headline": getattr(article, 'virlo_original_headline', None),
+        "virlo_suggested_hashtags": getattr(article, 'virlo_suggested_hashtags', []),
     }
 
 

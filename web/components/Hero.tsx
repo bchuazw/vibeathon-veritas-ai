@@ -8,8 +8,8 @@ import { fadeInUp, fadeIn, staggerContainer, staggerItem } from "@/components/mo
 const features = [
   {
     icon: Sparkles,
-    title: "AI Generated",
-    description: "Articles crafted by advanced language models",
+    title: "3-Agent AI Pipeline",
+    description: "Scout → Writer → Editor workflow for quality content",
   },
   {
     icon: Shield,
@@ -18,8 +18,8 @@ const features = [
   },
   {
     icon: Zap,
-    title: "Breaking News",
-    description: "Real-time updates on important events",
+    title: "Virlo-Optimized Headlines",
+    description: "Viral content optimized for maximum engagement",
   },
 ];
 
@@ -69,9 +69,9 @@ export function Hero() {
             variants={fadeInUp}
             className="mt-8 text-lg leading-relaxed text-stone-600 sm:text-xl max-w-2xl mx-auto"
           >
-            AI-powered news analysis that separates fact from fiction. 
-            Veritas AI delivers credible, well-sourced journalism with 
-            transparency you can trust.
+            AI-powered news analysis powered by our 3-Agent Pipeline (Scout → Writer → Editor)
+            and Virlo-optimized headlines. Veritas AI delivers credible, viral-ready 
+            journalism with transparency you can trust.
           </motion.p>
 
           {/* CTA Buttons */}
