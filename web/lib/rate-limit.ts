@@ -23,6 +23,7 @@ export function useRateLimit(): {
   checkRateLimit: () => RateLimitResult;
   recordRequest: () => void;
   resetLimit: () => void;
+  getRateLimitState: () => { remaining: number; resetTime: number | null; isLimited: boolean };
 } {
   const checkRateLimit = useCallback((): RateLimitResult => {
     if (typeof window === "undefined") {
@@ -59,6 +60,40 @@ export function useRateLimit(): {
     } catch (error) {
       console.error("Error checking rate limit:", error);
       return { canProceed: true, remainingRequests: MAX_REQUESTS, resetTime: null, message: null };
+    }
+  }, []);
+
+  // Get raw rate limit state for countdown timer
+  const getRateLimitState = useCallback(() => {
+    if (typeof window === "undefined") {
+      return { remaining: MAX_REQUESTS, resetTime: null, isLimited: false };
+    }
+
+    try {
+      const stored = localStorage.getItem(RATE_LIMIT_KEY);
+      const now = Date.now();
+
+      if (!stored) {
+        return { remaining: MAX_REQUESTS, resetTime: null, isLimited: false };
+      }
+
+      const data: RateLimitState = JSON.parse(stored);
+
+      // Reset if window has passed
+      if (now > data.resetTime) {
+        localStorage.removeItem(RATE_LIMIT_KEY);
+        return { remaining: MAX_REQUESTS, resetTime: null, isLimited: false };
+      }
+
+      const remaining = Math.max(0, MAX_REQUESTS - data.requests);
+      return {
+        remaining,
+        resetTime: data.resetTime,
+        isLimited: data.requests >= MAX_REQUESTS,
+      };
+    } catch (error) {
+      console.error("Error getting rate limit state:", error);
+      return { remaining: MAX_REQUESTS, resetTime: null, isLimited: false };
     }
   }, []);
 
@@ -104,7 +139,7 @@ export function useRateLimit(): {
     localStorage.removeItem(RATE_LIMIT_KEY);
   }, []);
 
-  return { checkRateLimit, recordRequest, resetLimit };
+  return { checkRateLimit, recordRequest, resetLimit, getRateLimitState };
 }
 
 // Debounce hook for preventing rapid clicks
