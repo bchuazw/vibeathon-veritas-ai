@@ -5,12 +5,14 @@ import { Hero } from "@/components/Hero";
 import { ArticleList } from "@/components/ArticleList";
 import { GenerateButton } from "@/components/GenerateButton";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { fetchBreakingNews, generateArticle } from "@/lib/api";
 import { Article } from "@/types/article";
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [topic, setTopic] = useState("latest technology news");
 
   useEffect(() => {
     loadArticles();
@@ -30,7 +32,7 @@ export default function Home() {
   };
 
   const handleGenerate = async () => {
-    const result = await generateArticle();
+    const result = await generateArticle(topic);
     if (result.success && result.article) {
       setArticles((prev) => [result.article, ...prev]);
     }
@@ -52,7 +54,16 @@ export default function Home() {
                 Breaking news and AI-generated analysis
               </p>
             </div>
-            <GenerateButton onGenerate={handleGenerate} size="default" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                type="text"
+                placeholder="Enter a topic..."
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full sm:w-64"
+              />
+              <GenerateButton onGenerate={handleGenerate} size="default" />
+            </div>
           </div>
 
           <Separator className="mb-10" />
