@@ -1,44 +1,75 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { ArticleReader } from "@/components/ArticleReader";
 import { fetchArticle } from "@/lib/api";
+import { Article } from "@/types/article";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Generate static params for dynamic route (required for output: 'export')
-export async function generateStaticParams() {
-  // Articles are fetched client-side, so we return an empty array
-  // The page will be rendered at request time on the client
-  return [];
-}
+export default function ArticlePage() {
+  const params = useParams();
+  const [article, setArticle] = useState<Article | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-// Server component wrapper to fetch data
-async function ArticleContent({ id }: { id: string }) {
-  try {
-    const data = await fetchArticle(id);
-    return <ArticleReader article={data.article} />;
-  } catch (err) {
-    console.error("Failed to load article:", err);
+  useEffect(() => {
+    const loadArticle = async () => {
+      if (!params.id) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const data = await fetchArticle(params.id as string);
+        setArticle(data.article);
+      } catch (err) {
+        console.error("Failed to load article:", err);
+        setError("Failed to load article. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadArticle();
+  }, [params.id]);
+
+  if (isLoading) {
     return (
-      <div className="text-center">
-        <h1 className="font-serif text-2xl font-bold text-stone-900">
-          Article Not Found
-        </h1>
-        <p className="mt-4 text-stone-600">
-          The article you&apos;re looking for doesn&apos;t exist.
-        </p>
+      <div className="container py-16">
+        <div className="mx-auto max-w-3xl space-y-6">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="aspect-[21/9] w-full" />
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </div>
       </div>
     );
   }
-}
 
-// Next.js 15 params is now a Promise
-export default async function ArticlePage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
-}) {
-  const { id } = await params;
-  
+  if (error || !article) {
+    return (
+      <div className="container py-16">
+        <div className="mx-auto max-w-3xl text-center">
+          <h1 className="font-serif text-2xl font-bold text-stone-900">
+            Article Not Found
+          </h1>
+          <p className="mt-4 text-stone-600">
+            {error || "The article you're looking for doesn't exist."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-16">
-      <ArticleContent id={id} />
+      <ArticleReader article={article} />
     </div>
   );
 }
