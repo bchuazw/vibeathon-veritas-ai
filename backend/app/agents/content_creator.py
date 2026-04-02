@@ -3,7 +3,7 @@ import logging
 from typing import Dict, List, Optional
 
 from app.config import get_settings
-from app.integrations.minimax_client import MiniMaxClient
+from app.integrations.openai_client import OpenAIClient
 from app.models.article import Article, NewsTopic, Source
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class ContentCreatorAgent:
     
     def __init__(self):
         self.settings = get_settings()
-        self.minimax = MiniMaxClient()
+        self.openai = OpenAIClient()
         self.max_retries = self.settings.max_retries
     
     async def create(
@@ -41,14 +41,14 @@ class ContentCreatorAgent:
         
         # Step 1: Research
         logger.info("Step 1: Researching topic...")
-        research = await self.minimax.research_topic(
+        research = await self.openai.research_topic(
             topic=topic.title,
             sources=topic.sources
         )
         
         # Step 2: Write initial draft
         logger.info("Step 2: Writing initial draft...")
-        draft = await self.minimax.write_article(
+        draft = await self.openai.write_article(
             topic=topic.title,
             research=research,
             target_length=target_length,
@@ -56,7 +56,7 @@ class ContentCreatorAgent:
         
         # Step 3: Fact-check
         logger.info("Step 3: Fact-checking...")
-        fact_check_result = await self.minimax.fact_check(
+        fact_check_result = await self.openai.fact_check(
             article_text=draft.get("body", ""),
             sources=topic.sources
         )
@@ -120,8 +120,8 @@ class ContentCreatorAgent:
         """
         corrections = fact_check.get("suggested_corrections", [])
         
-        # Use the minimax client's edit_for_ap_style method
-        return await self.minimax.edit_for_ap_style(draft, corrections)
+        # Use the openai client's edit_for_ap_style method
+        return await self.openai.edit_for_ap_style(draft, corrections)
     
     async def summarize(self, text: str, max_sentences: int = 3) -> str:
         """Create a summary of given text.
@@ -133,4 +133,4 @@ class ContentCreatorAgent:
         Returns:
             Summary string
         """
-        return await self.minimax.summarize(text, max_sentences)
+        return await self.openai.summarize(text, max_sentences)

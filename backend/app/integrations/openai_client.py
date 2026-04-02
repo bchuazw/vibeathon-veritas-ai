@@ -235,3 +235,90 @@ Respond in JSON format:
                 "url_slug": "",
                 "additional_keywords": []
             }
+
+    async def edit_for_ap_style(self, draft: Dict, corrections: List[str]) -> Dict:
+        """Edit article for AP style compliance."""
+        
+        corrections_text = "\n".join([f"- {c}" for c in corrections]) if corrections else "None"
+        
+        prompt = f"""Edit the following article for AP Style compliance:
+
+Original Headline:
+{draft.get('headline', '')}
+
+Original Body:
+{draft.get('body', '')}
+
+Fact-check corrections to address:
+{corrections_text}
+
+AP Style guidelines to follow:
+- Use numerals for numbers 10 and above, spell out one through nine
+- Use % instead of "percent"
+- Use title case for headlines
+- Use said, not stated or commented
+- Datelines in AP format (CITY (AP) --)
+- No Oxford comma
+- State abbreviations (not postal codes)
+- Titles capitalized only before names
+- Dates: Month Day, Year (no "on" before date)
+- Times: use a.m./p.m. (lowercase with periods)
+
+Return the edited article in the same format:
+{{
+    "headline": "...",
+    "body": "...",
+    "summary": "..."
+}}"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a copy editor specializing in AP Style. Edit articles to meet strict AP Style guidelines."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=self.max_tokens,
+                temperature=0.3,
+                response_format={"type": "json_object"}
+            )
+            
+            content = response.choices[0].message.content
+            edited = json.loads(content)
+            
+            # Ensure all fields exist
+            return {
+                "headline": edited.get("headline", draft.get("headline", "")),
+                "body": edited.get("body", draft.get("body", "")),
+                "summary": edited.get("summary", draft.get("summary", "")),
+            }
+            
+        except Exception as e:
+            logger.error(f"Error editing for AP style: {e}")
+            return draft
+
+    async def summarize(self, text: str, max_sentences: int = 3) -> str:
+        """Create a summary of given text."""
+        
+        prompt = f"""Summarize the following text in {max_sentences} sentences:
+
+{text[:2000]}
+
+Summary:"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a summarization expert. Create concise, accurate summaries."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=200,
+                temperature=0.3
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            logger.error(f"Error summarizing: {e}")
+            return text[:200] + "..." if len(text) > 200 else text
