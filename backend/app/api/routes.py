@@ -91,9 +91,9 @@ async def generate_article(request: Request, article_request: ArticleRequest):
         )
     
     start_time = time.time()
-    supabase = get_supabase_client()
     
     try:
+        supabase = get_supabase_client()
         # Validate input
         if not article_request.topic or len(article_request.topic.strip()) < 3:
             raise HTTPException(
