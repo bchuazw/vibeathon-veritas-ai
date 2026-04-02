@@ -23,7 +23,14 @@ from app.api.persistent_rate_limiter import get_rate_limiter
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-pipeline = VeritasPipeline()
+_pipeline: Optional[VeritasPipeline] = None
+
+def get_pipeline() -> VeritasPipeline:
+    """Get or create the pipeline instance (lazy initialization)."""
+    global _pipeline
+    if _pipeline is None:
+        _pipeline = VeritasPipeline()
+    return _pipeline
 
 
 class HealthResponse(BaseModel):
@@ -108,6 +115,7 @@ async def generate_article(request: Request, article_request: ArticleRequest):
             )
         
         # Run pipeline with provided topic
+        pipeline = get_pipeline()
         article = await pipeline.run_breaking_news(topic=article_request.topic)
         
         # Store article in memory (for immediate retrieval)
@@ -131,15 +139,12 @@ async def generate_article(request: Request, article_request: ArticleRequest):
     except HTTPException:
         raise
     except Exception as e:
-        import traceback
-        error_msg = str(e)
-        tb = traceback.format_exc()
-        logger.error(f"Error generating article: {error_msg}\n{tb}")
+        logger.error(f"Error generating article: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "Generation failed",
-                "message": f"Error: {error_msg[:200]}"
+                "message": "An error occurred while generating the article. Please try again."
             }
         )
 
@@ -159,6 +164,7 @@ async def generate_breaking_news(
     """
     try:
         # Create job
+        pipeline = get_pipeline()
         job_id = pipeline.create_job()
         
         # Run pipeline in background
@@ -189,7 +195,7 @@ async def get_generation_status(job_id: str):
     Returns:
         Current job status
     """
-    status = pipeline.get_job_status(job_id)
+    status = get_pipeline().get_job_status(job_id)
     
     if not status:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -255,7 +261,7 @@ async def get_article(article_id: str):
     
     # Fallback to in-memory storage
     if not article:
-        article = pipeline.get_article(article_id)
+        article = get_pipeline().get_article(article_id)
     
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
