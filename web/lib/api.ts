@@ -1,7 +1,9 @@
-const API_BASE_URL = 'https://veritas-ai-backend-p7t5.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://veritas-ai-backend-p7t5.onrender.com';
 
 export async function fetchArticle(id: string) {
-  const response = await fetch(`${API_BASE_URL}/api/news/article/${id}`);
+  const response = await fetch(`${API_BASE_URL}/api/news/article/${id}`, {
+    cache: 'no-store',
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch article');
   }
@@ -9,9 +11,12 @@ export async function fetchArticle(id: string) {
 }
 
 export async function fetchBreakingNews() {
-  const response = await fetch(`${API_BASE_URL}/api/news/breaking`);
+  // Fetch stored articles from the articles list endpoint
+  const response = await fetch(`${API_BASE_URL}/api/news/articles?limit=20`, {
+    cache: 'no-store',
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch breaking news');
+    throw new Error('Failed to fetch articles');
   }
   return response.json();
 }

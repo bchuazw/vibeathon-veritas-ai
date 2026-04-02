@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Hero } from "@/components/Hero";
+import { HowItWorks } from "@/components/HowItWorks";
 import { ArticleList } from "@/components/ArticleList";
 import { GenerateButton } from "@/components/GenerateButton";
 import { Separator } from "@/components/ui/separator";
@@ -43,6 +44,8 @@ export default function Home() {
   return (
     <>
       <Hero />
+      
+      <HowItWorks />
       
       <section id="latest" className="py-20 md:py-28 bg-stone-50/50">
         <div className="container">

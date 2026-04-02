@@ -10,3 +10,6 @@ data/
 .railway
 .vscode/
 .idea/
+web/.next/
+web/dist/
+web/next-env.d.ts
