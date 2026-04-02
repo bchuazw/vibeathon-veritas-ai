@@ -16,13 +16,17 @@ export async function fetchBreakingNews() {
   return response.json();
 }
 
-export async function generateArticle(topic?: string, category?: string) {
+export async function generateArticle(topic: string, keywords?: string[], targetLength?: number) {
   const response = await fetch(`${API_BASE_URL}/api/news/generate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ topic, category }),
+    body: JSON.stringify({ 
+      topic, 
+      keywords: keywords || [], 
+      target_length: targetLength || 400 
+    }),
   });
   
   if (!response.ok) {
