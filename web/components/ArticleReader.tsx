@@ -207,20 +207,21 @@ export function ArticleReader({ article }: ArticleReaderProps) {
       {/* Featured Image */}
       {article.image_url && (
         <motion.div 
-          className="relative mb-10 aspect-[21/9] overflow-hidden rounded-2xl shadow-card"
+          className="relative mb-10 aspect-[21/9] overflow-hidden rounded-2xl shadow-card bg-stone-100"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
         >
           <Image
             src={article.image_url}
-            alt={article.title}
+            alt={`Featured image for: ${article.title}`}
             fill
             className="object-cover"
             priority
             sizes="(max-width: 768px) 100vw, 800px"
+            decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" aria-hidden="true" />
         </motion.div>
       )}
 

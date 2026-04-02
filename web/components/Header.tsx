@@ -38,15 +38,15 @@ export function Header() {
       >
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="group flex items-center space-x-2.5">
+          <Link href="/" className="group flex items-center space-x-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-2">
             <motion.div
               whileHover={{ rotate: -5, scale: 1.05 }}
               transition={{ duration: 0.2 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-200 to-orange-200 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-200 to-orange-200 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
               <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-stone-900 text-stone-50 shadow-sm">
-                <Newspaper className="h-5 w-5" />
+                <Newspaper className="h-5 w-5" aria-hidden="true" />
               </div>
             </motion.div>
             <span className="font-serif text-xl font-bold tracking-tight text-stone-900">
@@ -55,17 +55,18 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-1" aria-label="Main navigation">
             {navItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
                 target={item.external ? "_blank" : undefined}
                 rel={item.external ? "noopener noreferrer" : undefined}
-                className="relative px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors duration-200 group"
+                className="relative px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors duration-200 group rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-2"
               >
                 {item.label}
-                <span className="absolute bottom-1 left-4 right-4 h-px bg-stone-900 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                {item.external && <span className="sr-only">(opens in new tab)</span>}
+                <span className="absolute bottom-1 left-4 right-4 h-px bg-stone-900 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" aria-hidden="true" />
               </Link>
             ))}
           </nav>

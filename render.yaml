@@ -16,18 +16,12 @@ services:
       - key: DEBUG
         value: false
 
-  - type: web
+  - type: static
     name: veritas-ai-frontend
-    runtime: node
     region: singapore
-    plan: free
     rootDir: web
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    publishDir: dist
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://veritas-ai-backend-p7t5.onrender.com
-      - key: PORT
-        value: "3000"
-      - key: NODE_ENV
-        value: production

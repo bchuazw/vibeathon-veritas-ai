@@ -1,21 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
 import { ArticleList } from "@/components/ArticleList";
 import { GenerateButton } from "@/components/GenerateButton";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { fetchBreakingNews, generateArticle } from "@/lib/api";
+import { fetchBreakingNews, generateArticle, APIError } from "@/lib/api";
 import { Article } from "@/types/article";
-import { Newspaper, Sparkles } from "lucide-react";
+import { Newspaper, Sparkles, AlertCircle, X } from "lucide-react";
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [topic, setTopic] = useState("latest technology news");
+  const [error, setError] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     loadArticles();
@@ -23,11 +25,16 @@ export default function Home() {
 
   const loadArticles = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await fetchBreakingNews();
       setArticles(data.articles || []);
-    } catch (error) {
-      console.error("Failed to load articles:", error);
+    } catch (err) {
+      const message = err instanceof APIError 
+        ? err.message 
+        : "Failed to load articles. Please try again later.";
+      setError(message);
+      console.error("Failed to load articles:", err);
       setArticles([]);
     } finally {
       setIsLoading(false);
@@ -35,9 +42,21 @@ export default function Home() {
   };
 
   const handleGenerate = async () => {
-    const result = await generateArticle(topic);
-    if (result.success && result.article) {
-      setArticles((prev) => [result.article, ...prev]);
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const result = await generateArticle(topic);
+      if (result.success && result.article) {
+        setArticles((prev) => [result.article, ...prev]);
+      }
+    } catch (err) {
+      const message = err instanceof APIError 
+        ? err.message 
+        : "Failed to generate article. Please try again.";
+      setError(message);
+      console.error("Generation failed:", err);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -47,7 +66,7 @@ export default function Home() {
       
       <HowItWorks />
       
-      <section id="latest" className="py-20 md:py-28 bg-stone-50/50">
+      <section id="latest" className="py-20 md:py-28 bg-stone-50/50" aria-labelledby="latest-stories-title">
         <div className="container">
           {/* Section Header */}
           <motion.div 
@@ -70,7 +89,7 @@ export default function Home() {
                 </div>
                 <span className="text-sm font-medium text-stone-500 uppercase tracking-wider">Stories</span>
               </motion.div>
-              <h2 className="font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+              <h2 id="latest-stories-title" className="font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
                 Latest Stories
               </h2>
               <p className="mt-3 text-lg text-stone-600 max-w-xl">
@@ -97,11 +116,14 @@ export default function Home() {
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   className="w-full sm:w-64 rounded-xl border-stone-200 focus:border-stone-400 focus:ring-stone-400"
+                  aria-label="Article topic"
+                  disabled={isGenerating}
                 />
                 <GenerateButton 
                   onGenerate={handleGenerate} 
                   size="default"
                   className="rounded-xl bg-stone-900 hover:bg-stone-800 shadow-button hover:shadow-button-hover transition-all duration-300"
+                  aria-label="Generate article"
                 />
               </div>
             </motion.div>
@@ -109,13 +131,47 @@ export default function Home() {
 
           <Separator className="mb-12" />
 
+          {/* Error Display */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-8"
+                role="alert"
+                aria-live="polite"
+              >
+                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-800">{error}</p>
+                    <button
+                      onClick={loadArticles}
+                      className="mt-2 text-sm font-medium text-red-700 hover:text-red-900 underline underline-offset-2"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="p-1 hover:bg-red-100 rounded-lg transition-colors"
+                    aria-label="Dismiss error"
+                  >
+                    <X className="h-4 w-4 text-red-600" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Articles Grid */}
           <ArticleList articles={articles} isLoading={isLoading} />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-stone-200/60 bg-stone-50">
+      <footer className="py-12 border-t border-stone-200/60 bg-stone-50" role="contentinfo">
         <div className="container">
           <motion.div 
             className="flex flex-col md:flex-row items-center justify-between gap-6"
@@ -125,8 +181,8 @@ export default function Home() {
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-900 text-stone-50">
-                <Newspaper className="h-4 w-4" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-900 text-stone-50" aria-hidden="true">
+                <Newspaper className="h-4 w-4" aria-hidden="true" />
               </div>
               <span className="font-serif text-lg font-bold text-stone-900">
                 Veritas AI

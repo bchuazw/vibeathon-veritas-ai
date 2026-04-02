@@ -59,6 +59,8 @@ export function GenerateButton({
       className={`relative overflow-hidden group ${className}`}
       onClick={handleClick}
       disabled={isGenerating}
+      aria-busy={isGenerating}
+      aria-label={isGenerating ? "Generating article, please wait" : children?.toString()}
     >
       {/* Background animation for generating state */}
       <AnimatePresence>

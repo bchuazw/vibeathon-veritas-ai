@@ -65,11 +65,14 @@ function EmptyState() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
       className="flex flex-col items-center justify-center py-20 text-center"
+      role="status"
+      aria-live="polite"
     >
       <motion.div 
         className="flex h-20 w-20 items-center justify-center rounded-2xl bg-stone-100 mb-6"
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        aria-hidden="true"
       >
         <FileText className="h-10 w-10 text-stone-400" />
       </motion.div>
@@ -86,7 +89,11 @@ function EmptyState() {
 export function ArticleList({ articles, isLoading }: ArticleListProps) {
   if (isLoading) {
     return (
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div 
+        className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3" 
+        aria-busy="true" 
+        aria-label="Loading articles"
+      >
         {Array.from({ length: 6 }).map((_, i) => (
           <ArticleSkeleton key={i} index={i} />
         ))}
