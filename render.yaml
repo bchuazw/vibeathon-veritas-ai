@@ -13,13 +13,9 @@ services:
       - key: NEWSAPI_KEY
         sync: false
       - key: DATABASE_URL
-        value: sqlite:///./data/veritas.db
+        value: sqlite:///./veritas.db
       - key: DEBUG
         value: false
-    disk:
-      name: data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 1
 
   - type: web
     name: veritas-ai-frontend
