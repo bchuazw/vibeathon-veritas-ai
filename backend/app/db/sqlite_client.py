@@ -85,7 +85,12 @@ class SQLiteClient:
                 created_at TEXT NOT NULL,
                 published_at TEXT,
                 updated_at TEXT NOT NULL,
-                credibility_score INTEGER DEFAULT 85
+                credibility_score INTEGER DEFAULT 85,
+                image_url TEXT,
+                virlo_optimized BOOLEAN DEFAULT 0,
+                virlo_score INTEGER,
+                virlo_original_headline TEXT,
+                virlo_suggested_hashtags TEXT  -- JSON array
             )
         """)
         
@@ -146,11 +151,15 @@ class SQLiteClient:
             # Convert keywords to JSON
             keywords_json = json.dumps(article.keywords) if article.keywords else "[]"
             
+            # Convert virlo hashtags to JSON
+            virlo_hashtags_json = json.dumps(article.virlo_suggested_hashtags) if article.virlo_suggested_hashtags else "[]"
+            
             cursor.execute("""
                 INSERT OR REPLACE INTO articles (
                     id, headline, body, summary, keywords, meta_title, meta_description,
-                    topic_id, status, sources, created_at, published_at, updated_at, credibility_score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    topic_id, status, sources, created_at, published_at, updated_at, credibility_score,
+                    image_url, virlo_optimized, virlo_score, virlo_original_headline, virlo_suggested_hashtags
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 article.id,
                 article.headline,
@@ -166,6 +175,11 @@ class SQLiteClient:
                 published_at,
                 now,
                 article.credibility_score,
+                article.image_url,
+                article.virlo_optimized,
+                article.virlo_score,
+                article.virlo_original_headline,
+                virlo_hashtags_json,
             ))
             
             self._connection.commit()
@@ -334,6 +348,15 @@ class SQLiteClient:
         if published_at:
             published_at = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
         
+        # Parse virlo hashtags from JSON
+        virlo_hashtags = []
+        virlo_hashtags_json = row["virlo_suggested_hashtags"]
+        if virlo_hashtags_json:
+            try:
+                virlo_hashtags = json.loads(virlo_hashtags_json)
+            except json.JSONDecodeError:
+                logger.warning(f"Failed to parse virlo hashtags JSON for article {row['id']}")
+        
         return Article(
             id=row["id"],
             headline=row["headline"],
@@ -347,6 +370,11 @@ class SQLiteClient:
             published_at=published_at,
             topic_id=row["topic_id"],
             credibility_score=row["credibility_score"] if row["credibility_score"] is not None else 85,
+            image_url=row["image_url"],
+            virlo_optimized=bool(row["virlo_optimized"]) if row["virlo_optimized"] is not None else False,
+            virlo_score=row["virlo_score"],
+            virlo_original_headline=row["virlo_original_headline"],
+            virlo_suggested_hashtags=virlo_hashtags,
         )
 
 
