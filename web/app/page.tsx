@@ -24,7 +24,7 @@ const RETRY_DELAY_MS = 1000;
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [topic, setTopic] = useState("latest technology news");
+  const [topic, setTopic] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [rateLimitError, setRateLimitError] = useState<string | null>(null);

@@ -8,7 +8,7 @@ import { Newspaper, Menu, X } from "lucide-react";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/#latest", label: "Latest" },
-  { href: "https://github.com", label: "GitHub", external: true },
+  { href: "https://github.com/bchuazw/vibeathon-veritas-ai", label: "GitHub", external: true },
 ];
 
 export function Header() {

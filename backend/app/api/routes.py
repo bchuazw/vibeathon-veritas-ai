@@ -210,6 +210,53 @@ async def get_generation_status(job_id: str):
     )
 
 
+def _map_to_category(keywords: list) -> str:
+    """Map article keywords to a standard news category.
+    
+    Args:
+        keywords: List of article keywords
+        
+    Returns:
+        Standard news category name
+    """
+    if not keywords:
+        return "News"
+    
+    # Join all keywords for matching
+    keyword_text = " ".join(keywords).lower()
+    
+    # Category mappings based on keyword patterns
+    category_mappings = {
+        "Technology": ["tech", "software", "ai", "artificial intelligence", "computer", "digital", "app", "internet", "cyber", "data", "algorithm", "computing", "quantum", "phone", "smartphone", "device"],
+        "Business": ["business", "company", "corporate", "startup", "market", "economy", "financial", "stock", "trade", "investment", "revenue", "profit", "ceo", "industry"],
+        "Science": ["science", "research", "study", "discovery", "space", "physics", "chemistry", "biology", "medical", "healthcare", "clinical", "treatment", "medicine"],
+        "Health": ["health", "medical", "medicine", "disease", "virus", "pandemic", "hospital", "doctor", "patient", "wellness", "fitness", "mental health"],
+        "Politics": ["politics", "government", "election", "vote", "policy", "law", "legislation", "congress", "senate", "president", "minister", "parliament"],
+        "Entertainment": ["entertainment", "movie", "film", "music", "celebrity", "actor", "actress", "hollywood", "show", "series", "streaming", "game", "gaming"],
+        "Sports": ["sports", "football", "basketball", "soccer", "tennis", "baseball", "olympics", "athlete", "team", "match", "tournament", "championship"],
+        "Environment": ["climate", "environment", "weather", "pollution", "carbon", "renewable", "energy", "green", "sustainable", "nature", "wildlife"],
+        "Education": ["education", "school", "university", "student", "teacher", "learning", "academic", "degree", "scholarship", "campus"],
+        "World": ["international", "global", "world", "foreign", "nation", "country", "border", "diplomatic", "embassy", "treaty", "conflict", "war"],
+    }
+    
+    # Score each category
+    category_scores = {}
+    for category, patterns in category_mappings.items():
+        score = sum(1 for pattern in patterns if pattern in keyword_text)
+        if score > 0:
+            category_scores[category] = score
+    
+    # Return the highest scoring category, or the first keyword capitalized
+    if category_scores:
+        return max(category_scores, key=category_scores.get)
+    
+    # Fallback: clean up and capitalize the first keyword
+    first_keyword = keywords[0].strip()
+    if len(first_keyword) > 20:
+        return "News"
+    return first_keyword.capitalize()
+
+
 def _article_to_frontend(article: Article) -> dict:
     """Convert backend Article model to frontend format.
     
@@ -230,7 +277,7 @@ def _article_to_frontend(article: Article) -> dict:
         "source": first_source.name if first_source else "Veritas AI",
         "source_url": first_source.url if first_source else None,
         "published_at": article.published_at.isoformat() if article.published_at else article.created_at.isoformat(),
-        "category": article.keywords[0] if article.keywords else "News",
+        "category": _map_to_category(article.keywords),
         "credibility_score": article.credibility_score,
         "is_breaking": False,  # Default value
         "image_url": None,  # Default value
