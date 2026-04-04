@@ -33,7 +33,7 @@ export default function Home() {
 
   const { checkRateLimit, recordRequest, getRateLimitState } = useRateLimit();
   const [rateLimitState, setRateLimitState] = useState<{ remaining: number; resetTime: number | null; isLimited: boolean }>({ 
-    remaining: 2, 
+    remaining: 3, 
     resetTime: null, 
     isLimited: false 
   });
