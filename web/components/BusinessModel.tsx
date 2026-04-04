@@ -13,7 +13,7 @@ const plans = [
     period: "during beta",
     description: "Experience AI-powered journalism at no cost",
     features: [
-      "2 articles per hour",
+      "3 articles per hour",
       "Credibility scoring",
       "Virlo headline optimization",
       "Basic analytics",

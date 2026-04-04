@@ -68,7 +68,7 @@ export function RateLimitDisplay({
   isLimited,
   onReset 
 }: RateLimitDisplayProps) {
-  const maxRequests = 2;
+  const maxRequests = 3;
   const usedRequests = maxRequests - remainingRequests;
 
   if (isLimited) {
