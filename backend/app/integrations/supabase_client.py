@@ -89,6 +89,11 @@ class SupabaseClient:
                     for s in article.sources
                 ],
                 "credibility_score": article.credibility_score,
+                "image_url": article.image_url,
+                "virlo_optimized": article.virlo_optimized,
+                "virlo_score": article.virlo_score,
+                "virlo_original_headline": article.virlo_original_headline,
+                "virlo_suggested_hashtags": article.virlo_suggested_hashtags,
             }
             
             result = self._client.table("articles").upsert(article_data).execute()
