@@ -134,17 +134,17 @@ export default function Home() {
       
       <BusinessModel />
       
-      <section id="latest" className="py-20 md:py-28 bg-stone-50/50" aria-labelledby="latest-stories-title">
-        <div className="container">
+      <section id="latest" className="py-16 sm:py-20 md:py-28 bg-stone-50/50" aria-labelledby="latest-stories-title">
+        <div className="container px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <motion.div 
-            className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"
+            className="mb-8 sm:mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div>
+            <div className="flex-1 min-w-0">
               <motion.div 
                 className="flex items-center gap-2 mb-3"
                 initial={{ opacity: 0, x: -20 }}
@@ -153,28 +153,28 @@ export default function Home() {
                 transition={{ delay: 0.1, duration: 0.4 }}
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-100">
-                  <Newspaper className="h-4 w-4 text-stone-600" />
+                  <Newspaper className="h-4 w-4 text-stone-600" aria-hidden="true" />
                 </div>
                 <span className="text-sm font-medium text-stone-500 uppercase tracking-wider">Stories</span>
               </motion.div>
-              <h2 id="latest-stories-title" className="font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+              <h2 id="latest-stories-title" className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 lg:text-4xl">
                 Latest Stories
               </h2>
-              <p className="mt-3 text-lg text-stone-600 max-w-xl">
+              <p className="mt-3 text-base sm:text-lg text-stone-600 max-w-xl">
                 Breaking news and AI-generated analysis from around the world
               </p>
             </div>
             
             {/* Generate section */}
             <motion.div 
-              className="flex flex-col gap-3 sm:flex-row sm:items-center p-4 bg-white rounded-2xl border border-stone-200/60 shadow-card"
+              className="flex flex-col gap-3 w-full lg:w-auto p-3 sm:p-4 bg-white rounded-2xl border border-stone-200/60 shadow-card"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.4 }}
             >
-              <div className="flex items-center gap-2 text-sm text-stone-500 mb-2 sm:mb-0 sm:mr-2">
-                <Sparkles className="h-4 w-4 text-amber-500" />
+              <div className="flex items-center gap-2 text-sm text-stone-500">
+                <Sparkles className="h-4 w-4 text-amber-500" aria-hidden="true" />
                 <span>Generate on topic:</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -183,14 +183,14 @@ export default function Home() {
                   placeholder="Enter a topic..."
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="w-full sm:w-64 rounded-xl border-stone-200 focus:border-stone-400 focus:ring-stone-400"
+                  className="w-full sm:w-56 lg:w-64 rounded-xl border-stone-200 focus:border-stone-400 focus:ring-stone-400"
                   aria-label="Article topic"
                   disabled={isGenerating}
                 />
                 <GenerateButton 
                   onGenerate={handleGenerate} 
                   size="default"
-                  className="rounded-xl bg-stone-900 hover:bg-stone-800 shadow-button hover:shadow-button-hover transition-all duration-300"
+                  className="rounded-xl bg-stone-900 hover:bg-stone-800 shadow-button hover:shadow-button-hover transition-all duration-300 whitespace-nowrap"
                   aria-label="Generate article"
                 />
               </div>
@@ -205,7 +205,7 @@ export default function Home() {
             onReset={() => setRateLimitState(getRateLimitState())}
           />
 
-          <Separator className="mb-12" />
+          <Separator className="mb-8 sm:mb-12" />
 
           {/* Rate Limit Error Display */}
           <AnimatePresence>
@@ -265,10 +265,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-stone-200/60 bg-stone-50" role="contentinfo">
-        <div className="container">
+      <footer className="py-8 sm:py-12 border-t border-stone-200/60 bg-stone-50" role="contentinfo">
+        <div className="container px-4 sm:px-6 lg:px-8">
           <motion.div 
-            className="flex flex-col md:flex-row items-center justify-between gap-6"
+            className="flex flex-col items-center justify-between gap-4 sm:gap-6 text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -282,11 +282,11 @@ export default function Home() {
                 Veritas AI
               </span>
             </div>
-            <p className="text-sm text-stone-500 text-center">
+            <p className="text-sm text-stone-500 max-w-md">
               Truth in the Age of Information. AI-powered journalism you can trust.
             </p>
-            <p className="text-sm text-stone-400">
-              © {new Date().getFullYear()} Veritas AI
+            <p className="text-xs sm:text-sm text-stone-400">
+              © {new Date().getFullYear()} Veritas AI. All rights reserved.
             </p>
           </motion.div>
         </div>

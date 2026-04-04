@@ -9,6 +9,45 @@ import { Loader2 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://veritas-ai-backend-p7t5.onrender.com';
 
+// Generate Article structured data for SEO
+function generateArticleSchema(article: Article, canonicalUrl: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": article.title,
+    "description": article.summary,
+    "image": article.image_url || "https://veritas-ai-frontend.onrender.com/og-image.svg",
+    "datePublished": article.published_at || article.created_at,
+    "dateModified": article.updated_at || article.created_at,
+    "author": {
+      "@type": "Organization",
+      "name": article.author || "Veritas AI"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Veritas AI",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://veritas-ai-frontend.onrender.com/og-image.svg"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": canonicalUrl
+    },
+    "articleSection": article.category,
+    "keywords": article.keywords?.join(", ") || "AI news, journalism",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "aggregateRating": article.credibility_score ? {
+      "@type": "AggregateRating",
+      "ratingValue": article.credibility_score.toString(),
+      "bestRating": "100",
+      "worstRating": "0"
+    } : undefined
+  };
+}
+
 export default function ArticlePageClient() {
   const params = useParams();
   const paramId = params?.id as string;
@@ -121,9 +160,22 @@ export default function ArticlePageClient() {
     );
   }
 
+  const canonicalUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/article/${id}/`
+    : `https://veritas-ai-frontend.onrender.com/article/${id}/`;
+
   return (
-    <div className="container py-20 md:py-24">
-      <ArticleReader article={article} />
-    </div>
+    <>
+      {/* JSON-LD Article Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ 
+          __html: JSON.stringify(generateArticleSchema(article, canonicalUrl)) 
+        }}
+      />
+      <div className="container py-20 md:py-24">
+        <ArticleReader article={article} />
+      </div>
+    </>
   );
 }

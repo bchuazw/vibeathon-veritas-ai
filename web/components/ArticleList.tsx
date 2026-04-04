@@ -64,26 +64,26 @@ function EmptyState() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gradient-to-b from-stone-50/50 to-transparent rounded-3xl border border-dashed border-stone-200"
+      className="flex flex-col items-center justify-center py-12 sm:py-16 px-4 text-center bg-gradient-to-b from-stone-50/50 to-transparent rounded-3xl border border-dashed border-stone-200"
       role="status"
       aria-live="polite"
     >
       <motion.div 
-        className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 mb-6 shadow-sm"
+        className="flex h-16 w-16 sm:h-24 sm:w-24 items-center justify-center rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 mb-4 sm:mb-6 shadow-sm"
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
         aria-hidden="true"
       >
-        <Sparkles className="h-12 w-12 text-amber-600" />
+        <Sparkles className="h-8 w-8 sm:h-12 sm:w-12 text-amber-600" aria-hidden="true" />
       </motion.div>
-      <h3 className="font-serif text-2xl font-semibold text-stone-900 mb-3">
+      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-stone-900 mb-2 sm:mb-3">
         Be the First to Create!
       </h3>
-      <p className="text-stone-600 max-w-md mb-6 leading-relaxed">
+      <p className="text-stone-600 max-w-md mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base px-2">
         No articles yet — enter a topic above and click "Generate Article" to create the first AI-powered story with our 3-Agent Pipeline.
       </p>
-      <div className="flex items-center gap-2 text-sm text-stone-500">
-        <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+      <div className="flex flex-col sm:flex-row items-center gap-2 text-xs sm:text-sm text-stone-500 text-center">
+        <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" aria-hidden="true" />
         <span>3 articles per hour • Credibility scored • Virlo optimized</span>
       </div>
     </motion.div>

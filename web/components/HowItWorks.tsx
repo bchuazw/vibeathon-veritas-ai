@@ -45,7 +45,7 @@ const agents = [
 
 export function HowItWorks() {
   return (
-    <section className="py-20 md:py-28 bg-white relative overflow-hidden" aria-labelledby="how-it-works-title">
+    <section className="py-16 sm:py-20 md:py-28 bg-white relative overflow-hidden" aria-labelledby="how-it-works-title">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-stone-100/50 to-transparent blur-3xl" />

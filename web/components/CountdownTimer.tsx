@@ -117,11 +117,11 @@ export function RateLimitDisplay({
         animate={{ opacity: 1, y: 0 }}
         className="mb-4"
       >
-        <div className="inline-flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+        <div className="inline-flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl max-w-full">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-amber-600" />
+            <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" aria-hidden="true" />
             <span className="text-sm font-medium text-amber-800">
-              {remainingRequests} of {maxRequests} articles remaining this hour
+              {remainingRequests} of {maxRequests} articles remaining
             </span>
           </div>
           {resetTime && (

@@ -29,7 +29,7 @@ const targetMarkets = [
 
 export function TargetMarket() {
   return (
-    <section className="py-20 md:py-28 bg-stone-50 relative overflow-hidden" aria-labelledby="target-market-title">
+    <section className="py-16 sm:py-20 md:py-28 bg-stone-50 relative overflow-hidden" aria-labelledby="target-market-title">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-1/2 left-0 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-stone-100/50 to-transparent blur-3xl -translate-y-1/2" />

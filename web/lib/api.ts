@@ -14,6 +14,20 @@ export class APIError extends Error {
   }
 }
 
+// User-friendly error messages
+const ERROR_MESSAGES: Record<number, string> = {
+  400: "Invalid request. Please check your input and try again.",
+  401: "Authentication required. Please sign in to continue.",
+  403: "Access denied. You don't have permission to perform this action.",
+  404: "Content not found. It may have been moved or deleted.",
+  408: "Request timed out. The server is taking too long to respond.",
+  429: "Too many requests. Please wait a moment before trying again.",
+  500: "Server error. Our team has been notified and is working on it.",
+  502: "Service temporarily unavailable. Please try again in a few moments.",
+  503: "Service is under maintenance. Please check back soon.",
+  504: "Gateway timeout. The backend service is starting up—please try again.",
+};
+
 // Parse API error response
 async function parseErrorResponse(response: Response): Promise<APIError> {
   try {
@@ -23,8 +37,11 @@ async function parseErrorResponse(response: Response): Promise<APIError> {
       ? parseInt(response.headers.get('Retry-After') || errorData.retry_after || '3600')
       : undefined;
     
+    // Use user-friendly message if available
+    const userMessage = errorData.userMessage || ERROR_MESSAGES[response.status] || errorData.message || errorData.error || 'An unexpected error occurred';
+    
     return new APIError(
-      errorData.message || errorData.error || 'An error occurred',
+      userMessage,
       response.status,
       false,
       retryAfter,
@@ -32,7 +49,7 @@ async function parseErrorResponse(response: Response): Promise<APIError> {
     );
   } catch {
     return new APIError(
-      `HTTP error ${response.status}`,
+      ERROR_MESSAGES[response.status] || `Server error (${response.status}). Please try again later.`,
       response.status,
       false
     );
@@ -118,7 +135,7 @@ export async function fetchArticle(id: string) {
   } catch (error) {
     if (error instanceof APIError) throw error;
     throw new APIError(
-      'Network error. Please check your connection.',
+      'Unable to connect to the server. Please check your internet connection and try again.',
       undefined,
       true
     );
@@ -134,7 +151,7 @@ export async function fetchBreakingNews() {
   } catch (error) {
     if (error instanceof APIError) throw error;
     throw new APIError(
-      'Network error. Please check your connection.',
+      'Unable to load articles. The backend may be starting up—please try again in a moment.',
       undefined,
       true
     );
@@ -159,7 +176,7 @@ export async function generateArticle(topic: string, keywords?: string[], target
   } catch (error) {
     if (error instanceof APIError) throw error;
     throw new APIError(
-      'Network error. Please check your connection and try again.',
+      'Failed to generate article. Please check your connection and try again.',
       undefined,
       true
     );
