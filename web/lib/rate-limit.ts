@@ -9,7 +9,7 @@ interface RateLimitState {
 }
 
 const RATE_LIMIT_KEY = "veritas_rate_limit";
-const MAX_REQUESTS = 2;
+const MAX_REQUESTS = 3;
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
 interface RateLimitResult {
