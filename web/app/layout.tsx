@@ -17,8 +17,53 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Veritas AI - Truth in the Age of Information",
-  description: "AI-powered news analysis that separates fact from fiction. Veritas AI delivers credible, well-sourced journalism with transparency you can trust.",
-  keywords: ["AI", "news", "journalism", "fact-checking", "credibility"],
+  description: "AI-powered news analysis powered by our 3-Agent Pipeline (Scout → Writer → Editor) and Virlo-optimized headlines. Veritas AI delivers credible, viral-ready journalism with transparency you can trust.",
+  keywords: ["AI", "news", "journalism", "fact-checking", "credibility", "Virlo", "viral content", "multi-agent"],
+  authors: [{ name: "Veritas AI" }],
+  creator: "Veritas AI",
+  publisher: "Veritas AI",
+  metadataBase: new URL("https://veritas-ai-frontend.onrender.com"),
+  openGraph: {
+    title: "Veritas AI - Truth in the Age of Information",
+    description: "AI-powered news analysis with 3-Agent Pipeline (Scout → Writer → Editor) and Virlo-optimized headlines.",
+    url: "https://veritas-ai-frontend.onrender.com",
+    siteName: "Veritas AI",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "Veritas AI - AI-Powered Journalism",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Veritas AI - Truth in the Age of Information",
+    description: "AI-powered news analysis with 3-Agent Pipeline and Virlo-optimized headlines.",
+    images: ["/og-image.svg"],
+    creator: "@veritasai",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({

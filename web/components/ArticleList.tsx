@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { ArticleCard } from "./ArticleCard";
 import { Article } from "@/types/article";
-import { FileText } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 
 interface ArticleListProps {
   articles: Article[];
@@ -64,24 +64,28 @@ function EmptyState() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center py-20 text-center"
+      className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gradient-to-b from-stone-50/50 to-transparent rounded-3xl border border-dashed border-stone-200"
       role="status"
       aria-live="polite"
     >
       <motion.div 
-        className="flex h-20 w-20 items-center justify-center rounded-2xl bg-stone-100 mb-6"
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 mb-6 shadow-sm"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
         aria-hidden="true"
       >
-        <FileText className="h-10 w-10 text-stone-400" />
+        <Sparkles className="h-12 w-12 text-amber-600" />
       </motion.div>
-      <h3 className="font-serif text-xl font-semibold text-stone-900 mb-2">
-        No articles found
+      <h3 className="font-serif text-2xl font-semibold text-stone-900 mb-3">
+        Be the First to Create!
       </h3>
-      <p className="text-stone-500 max-w-sm">
-        Check back later for new stories or try generating an article on a topic you&apos;re interested in.
+      <p className="text-stone-600 max-w-md mb-6 leading-relaxed">
+        No articles yet — enter a topic above and click "Generate Article" to create the first AI-powered story with our 3-Agent Pipeline.
       </p>
+      <div className="flex items-center gap-2 text-sm text-stone-500">
+        <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+        <span>3 articles per hour • Credibility scored • Virlo optimized</span>
+      </div>
     </motion.div>
   );
 }

@@ -106,6 +106,7 @@ class ContentCreatorAgent:
             sources=topic.sources,
             keywords=topic.keywords + virlo_hashtags[:3],  # Add Virlo hashtags to keywords
             topic_id=topic.id,
+            image_url=getattr(topic, 'image_url', None),
             virlo_optimized=self.settings.virlo_enabled,
             virlo_score=virlo_score,
             virlo_original_headline=original_headline if virlo_optimized_headline != original_headline else None,

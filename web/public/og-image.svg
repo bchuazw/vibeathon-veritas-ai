@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#fafaf9"/>
+  <rect x="0" y="0" width="600" height="630" fill="#1c1917"/>
+  <text x="300" y="280" font-size="120" text-anchor="middle" fill="#fafaf9" font-family="Georgia, serif">V</text>
+  <text x="300" y="380" font-size="40" text-anchor="middle" fill="#a8a29e" font-family="system-ui, sans-serif">Veritas AI</text>
+  <text x="750" y="250" font-size="48" fill="#1c1917" font-family="Georgia, serif" font-weight="bold">Truth in the Age</text>
+  <text x="750" y="310" font-size="48" fill="#1c1917" font-family="Georgia, serif" font-weight="bold">of Information</text>
+  <text x="750" y="400" font-size="24" fill="#57534e" font-family="system-ui, sans-serif">AI-powered journalism with</text>
+  <text x="750" y="435" font-size="24" fill="#57534e" font-family="system-ui, sans-serif">3-Agent Pipeline & Virlo optimization</text>
+</svg>

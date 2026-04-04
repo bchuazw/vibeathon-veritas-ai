@@ -280,7 +280,7 @@ def _article_to_frontend(article: Article) -> dict:
         "category": _map_to_category(article.keywords),
         "credibility_score": article.credibility_score,
         "is_breaking": False,  # Default value
-        "image_url": None,  # Default value
+        "image_url": article.image_url,
         "author": None,  # Default value
         "created_at": article.created_at.isoformat(),
         "updated_at": article.created_at.isoformat(),
