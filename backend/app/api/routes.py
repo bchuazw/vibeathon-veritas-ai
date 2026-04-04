@@ -270,13 +270,14 @@ async def get_article(article_id: str):
 
 
 @router.get("/api/news/articles")
-async def list_articles(request: Request, limit: int = 10, offset: int = 0):
+async def list_articles(request: Request, limit: int = 10, offset: int = 0, category: Optional[str] = None):
     """List recent articles from Supabase.
     
     Args:
         request: FastAPI request object
         limit: Maximum number of articles to return (max 50)
         offset: Number of articles to skip
+        category: Filter by category (optional)
         
     Returns:
         List of articles in frontend format
@@ -296,6 +297,11 @@ async def list_articles(request: Request, limit: int = 10, offset: int = 0):
     try:
         supabase = get_supabase_client()
         articles = await supabase.list_recent_articles(limit=limit, offset=offset)
+        
+        # Filter by category if specified
+        if category:
+            category_lower = category.lower()
+            articles = [a for a in articles if category_lower in (a.category or "").lower()]
         
         return {
             "articles": [_article_to_frontend(a) for a in articles],
