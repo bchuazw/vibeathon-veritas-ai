@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://veritas-ai-frontend.onrender.com/sitemap.xml
+
+# Disallow API and internal routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Crawl-delay for rate limiting
+Crawl-delay: 1

@@ -64,6 +64,47 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
+  verification: {
+    google: "veritas-ai-verification",
+  },
+  alternates: {
+    canonical: "https://veritas-ai-frontend.onrender.com",
+  },
+};
+
+// Website structured data for SEO
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Veritas AI",
+  "url": "https://veritas-ai-frontend.onrender.com",
+  "description": "AI-powered news analysis with 3-Agent Pipeline and Virlo-optimized headlines",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Veritas AI",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://veritas-ai-frontend.onrender.com/og-image.svg"
+    }
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://veritas-ai-frontend.onrender.com/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+};
+
+// Organization structured data
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Veritas AI",
+  "url": "https://veritas-ai-frontend.onrender.com",
+  "logo": "https://veritas-ai-frontend.onrender.com/og-image.svg",
+  "sameAs": [
+    "https://github.com/bchuazw/vibeathon-veritas-ai"
+  ],
+  "description": "AI-powered journalism platform with credibility scoring and viral optimization"
 };
 
 export default function RootLayout({
@@ -73,6 +114,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} scroll-smooth`}>
+      <head>
+        {/* Preconnect to API for faster requests */}
+        <link rel="preconnect" href="https://veritas-ai-backend-p7t5.onrender.com" />
+        <link rel="dns-prefetch" href="https://veritas-ai-backend-p7t5.onrender.com" />
+        
+        {/* Plausible Analytics */}
+        <script 
+          defer 
+          data-domain="veritas-ai-frontend.onrender.com" 
+          src="https://plausible.io/js/script.js"
+        />
+        
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
       <body className="font-sans antialiased bg-background text-foreground">
         {/* Skip to main content link for accessibility */}
         <a

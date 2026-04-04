@@ -61,7 +61,7 @@ const plans = [
 
 export function BusinessModel() {
   return (
-    <section className="py-20 md:py-28 bg-white relative overflow-hidden" aria-labelledby="pricing-title">
+    <section className="py-16 sm:py-20 md:py-28 bg-white relative overflow-hidden" aria-labelledby="pricing-title">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-bl from-amber-50/50 to-transparent blur-3xl" />
