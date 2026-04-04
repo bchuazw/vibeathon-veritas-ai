@@ -29,6 +29,7 @@ class NewsAPIClient:
                 "url": "https://example.com/openai-gpt5",
                 "source": {"name": "TechCrunch"},
                 "publishedAt": datetime.utcnow().isoformat(),
+                "urlToImage": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
             },
             {
                 "title": "Google DeepMind's AlphaFold 3 Revolutionizes Drug Discovery",
@@ -36,6 +37,7 @@ class NewsAPIClient:
                 "url": "https://example.com/alphafold3",
                 "source": {"name": "Nature"},
                 "publishedAt": datetime.utcnow().isoformat(),
+                "urlToImage": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800&q=80",
             },
             {
                 "title": "Tesla's Full Self-Driving Reaches 1 Billion Miles Driven Autonomously",
@@ -43,6 +45,7 @@ class NewsAPIClient:
                 "url": "https://example.com/tesla-fsd",
                 "source": {"name": "Reuters"},
                 "publishedAt": datetime.utcnow().isoformat(),
+                "urlToImage": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80",
             },
             {
                 "title": "Apple Unveils AI-Powered Health Monitoring in Latest Watch",
@@ -50,6 +53,7 @@ class NewsAPIClient:
                 "url": "https://example.com/apple-watch-ai",
                 "source": {"name": "The Verge"},
                 "publishedAt": datetime.utcnow().isoformat(),
+                "urlToImage": "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=800&q=80",
             },
             {
                 "title": "Microsoft's Quantum Computer Achieves Error Correction Breakthrough",
@@ -57,6 +61,7 @@ class NewsAPIClient:
                 "url": "https://example.com/microsoft-quantum",
                 "source": {"name": "Ars Technica"},
                 "publishedAt": datetime.utcnow().isoformat(),
+                "urlToImage": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80",
             },
         ]
         logger.warning("Using mock news data - add NEWSAPI_KEY for real news")
@@ -174,6 +179,7 @@ class NewsAPIClient:
                 sources=[source],
                 relevance_score=0.8,  # Default score for NewsAPI results
                 keywords=self._extract_keywords(article),
+                image_url=article.get("urlToImage"),
             )
             topics.append(topic)
             

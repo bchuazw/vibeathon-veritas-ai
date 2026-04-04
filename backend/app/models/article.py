@@ -34,6 +34,7 @@ class NewsTopic(BaseModel):
     sources: List[Source] = []
     relevance_score: float = 0.0
     keywords: List[str] = []
+    image_url: Optional[str] = None
 
 
 class Article(BaseModel):
@@ -44,6 +45,7 @@ class Article(BaseModel):
     summary: Optional[str] = None
     sources: List[Source] = []
     keywords: List[str] = []
+    image_url: Optional[str] = None
     
     # SEO fields
     meta_title: Optional[str] = None
