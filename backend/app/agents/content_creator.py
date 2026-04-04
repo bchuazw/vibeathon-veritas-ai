@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 from app.config import get_settings
 from app.integrations.openai_client import OpenAIClient
 from app.integrations.virlo_client import VirloClient
+from app.integrations.unsplash import get_unsplash_client
 from app.models.article import Article, NewsTopic, Source
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class ContentCreatorAgent:
         self.settings = get_settings()
         self.openai = OpenAIClient()
         self.virlo = VirloClient()
+        self.unsplash = get_unsplash_client()
         self.max_retries = self.settings.max_retries
     
     async def create(
@@ -98,7 +100,42 @@ class ContentCreatorAgent:
                 logger.warning(f"Virlo optimization failed, using original headline: {e}")
                 virlo_optimized_headline = original_headline
         
-        # Create Article model with Virlo optimization data
+        # Step 6: Fetch image for article
+        logger.info("Step 6: Fetching article image...")
+        image_url = getattr(topic, 'image_url', None)
+        
+        # If no image from topic source, fetch from Unsplash
+        if not image_url:
+            # Determine category from keywords or default to Technology
+            category = "Technology"  # Default
+            keywords_lower = [k.lower() for k in topic.keywords]
+            
+            # Simple keyword matching for category
+            category_keywords = {
+                "Technology": ["ai", "tech", "software", "computer", "digital", "robot"],
+                "Business": ["business", "finance", "market", "economy", "startup", "company"],
+                "Science": ["science", "research", "space", "physics", "biology"],
+                "Health": ["health", "medical", "medicine", "doctor", "hospital"],
+                "Environment": ["climate", "environment", "green", "energy", "solar", "renewable"],
+                "Education": ["education", "school", "university", "student", "learning"],
+                "Sports": ["sports", "game", "team", "player", "championship"],
+                "Politics": ["politics", "government", "election", "vote", "policy"],
+                "Entertainment": ["movie", "music", "film", "entertainment", "celebrity"],
+                "World": ["world", "international", "global", "country", "nation"],
+            }
+            
+            for cat, words in category_keywords.items():
+                if any(word in keywords_lower for word in words):
+                    category = cat
+                    break
+            
+            image_url = self.unsplash.get_image_for_category(
+                category=category,
+                keywords=topic.keywords
+            )
+            logger.info(f"Fetched image for category '{category}': {image_url}")
+        
+        # Create Article model with Virlo optimization data and image
         article = Article(
             headline=virlo_optimized_headline,
             body=final_article.get("body", ""),
@@ -106,7 +143,7 @@ class ContentCreatorAgent:
             sources=topic.sources,
             keywords=topic.keywords + virlo_hashtags[:3],  # Add Virlo hashtags to keywords
             topic_id=topic.id,
-            image_url=getattr(topic, 'image_url', None),
+            image_url=image_url,
             virlo_optimized=self.settings.virlo_enabled,
             virlo_score=virlo_score,
             virlo_original_headline=original_headline if virlo_optimized_headline != original_headline else None,
